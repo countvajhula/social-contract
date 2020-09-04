@@ -30,11 +30,11 @@
 (define (variadic-function/c source/c target/c)
   (-> source/c ... target/c))
 
-(define (encoder/c as-type)
-  (function/c any/c as-type))
+(define (encoder/c as-type/c)
+  (function/c any/c as-type/c))
 
-(define (decoder/c from-type)
-  (function/c from-type any/c))
+(define (decoder/c from-type/c)
+  (function/c from-type/c any/c))
 
 (define (maybe/c contract [default/c #f])
   (or/c contract default/c))
