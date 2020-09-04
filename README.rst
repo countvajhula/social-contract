@@ -1,6 +1,6 @@
-common-contracts
-================
-Common contracts.
+social-contract
+===============
+Social contracts.
 
 
 "License":

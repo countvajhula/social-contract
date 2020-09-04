@@ -1,6 +1,6 @@
 # Adapted from: http://www.greghendershott.com/2017/04/racket-makefiles.html
-PACKAGE-NAME=common-contracts
-COLLECTION-NAME=contract/common
+PACKAGE-NAME=social-contract
+COLLECTION-NAME=contract/social
 
 DEPS-FLAGS=--check-pkg-deps --unused-pkg-deps
 
@@ -61,7 +61,7 @@ test:
 	raco test -x -p $(PACKAGE-NAME)
 
 test-with-errortrace:
-	racket -l errortrace -l racket -e '(require (submod "contract/common.rkt" test))'
+	racket -l errortrace -l racket -e '(require (submod "contract/social.rkt" test))'
 
 errortrace: test-with-errortrace
 

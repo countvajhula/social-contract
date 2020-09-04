@@ -4,7 +4,7 @@
          scribble/example
          racket/sandbox
          pict/private/layout
-         @for-label[contract/common
+         @for-label[contract/social
                     (except-in racket
                                map
                                filter
@@ -32,11 +32,11 @@
                                                       foldl
                                                       foldl/steps)
                                            relation
-                                           contract/common
+                                           contract/social
                                            racket/stream))))
 
-@title{Common Contracts}
+@title{Social Contracts}
 @author{Siddhartha Kasivajhula}
 
-@defmodule[contract/common]
+@defmodule[contract/social]
 
