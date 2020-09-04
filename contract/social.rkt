@@ -4,21 +4,21 @@
          (only-in data/collection
                   sequenceof))
 
-(provide function/c
-         binary-function/c
-         variadic-function/c
-         encoder/c
-         decoder/c
-         optional/c
-         binary-composition/c
-         variadic-composition/c
-         reducer/c
-         self-map/c
-         functional/c
-         binary-constructor/c
-         variadic-constructor/c
-         variadic-comparison-predicate/c
-         variadic-comparison-selection/c)
+(provide
+ (contract-out [function/c (-> contract? contract? contract?)]
+               [binary-function/c (-> contract? contract? contract? contract?)]
+               [variadic-function/c (-> contract? contract? contract?)]
+               [encoder/c (-> contract? contract?)]
+               [decoder/c (-> contract? contract?)]
+               [binary-composition/c (-> contract? contract?)]
+               [variadic-composition/c (-> contract? contract?)]
+               [reducer/c (-> contract? contract?)]
+               [self-map/c (-> contract? contract?)]
+               [functional/c (->* () (contract?) contract?)]
+               [binary-constructor/c (-> contract? contract? contract?)]
+               [variadic-constructor/c (-> contract? contract? contract?)]
+               [variadic-comparison-predicate/c (-> contract? contract?)]
+               [variadic-comparison-selection/c (-> contract? contract?)]))
 
 (define (function/c source/c target/c)
   (-> source/c target/c))
@@ -34,9 +34,6 @@
 
 (define (decoder/c from-type)
   (function/c from-type any/c))
-
-(define (optional/c contract [default/c #f])
-  (or/c contract default/c))
 
 (define (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
