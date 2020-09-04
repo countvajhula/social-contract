@@ -40,3 +40,4 @@
 
 @defmodule[contract/social]
 
+Collectively-defined contracts for commonly encountered types.
