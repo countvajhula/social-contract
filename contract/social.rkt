@@ -10,6 +10,7 @@
                [variadic-function/c (-> contract? contract? contract?)]
                [encoder/c (-> contract? contract?)]
                [decoder/c (-> contract? contract?)]
+               [maybe/c (->* (contract?) (contract?) contract?)]
                [binary-composition/c (-> contract? contract?)]
                [variadic-composition/c (-> contract? contract?)]
                [reducer/c (-> contract? contract?)]
@@ -34,6 +35,9 @@
 
 (define (decoder/c from-type)
   (function/c from-type any/c))
+
+(define (maybe/c contract [default/c #f])
+  (or/c contract default/c))
 
 (define (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
@@ -60,7 +64,7 @@
   ;; TODO: improve to ensure that arguments are type/c
   ;; (rather than any/c) when no key is provided
   (->* (any/c)
-       (#:key (optional/c (encoder/c type/c)))
+       (#:key (maybe/c (encoder/c type/c)))
        #:rest list?
        return/c))
 
