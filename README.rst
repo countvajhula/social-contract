@@ -1,7 +1,12 @@
+.. image:: https://travis-ci.com/countvajhula/social-contract.svg?branch=master
+    :target: https://travis-ci.com/countvajhula/social-contract
+
 social-contract
 ===============
-Social contracts.
+Collectively-defined contracts for commonly encountered types in Racket.
 
+Install it from the `Racket Package Index <https://pkgs.racket-lang.org/package/social-contract>`_.
+Read `the documentation <https://docs.racket-lang.org/social-contract/index.html>`_ to learn more.
 
 "License":
 ==========
