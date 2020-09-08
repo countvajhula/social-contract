@@ -5,21 +5,21 @@
                   sequenceof))
 
 (provide
- (contract-out [function/c (-> contract? contract? contract?)]
+ (contract-out [function/c (binary-composition/c contract?)]
                [binary-function/c (-> contract? contract? contract? contract?)]
                [variadic-function/c (-> contract? contract? contract?)]
-               [encoder/c (-> contract? contract?)]
-               [decoder/c (-> contract? contract?)]
+               [encoder/c (self-map/c contract?)]
+               [decoder/c (self-map/c contract?)]
                [maybe/c (->* (contract?) (contract?) contract?)]
-               [binary-composition/c (-> contract? contract?)]
-               [variadic-composition/c (-> contract? contract?)]
-               [reducer/c (-> contract? contract?)]
-               [self-map/c (-> contract? contract?)]
+               [binary-composition/c (self-map/c contract?)]
+               [variadic-composition/c (self-map/c contract?)]
+               [reducer/c (self-map/c contract?)]
+               [self-map/c (self-map/c contract?)]
                [functional/c (->* () (contract?) contract?)]
-               [binary-constructor/c (-> contract? contract? contract?)]
-               [variadic-constructor/c (-> contract? contract? contract?)]
-               [variadic-comparison-predicate/c (-> contract? contract?)]
-               [variadic-comparison-selection/c (-> contract? contract?)]))
+               [binary-constructor/c (binary-composition/c contract?)]
+               [variadic-constructor/c (binary-composition/c contract?)]
+               [variadic-comparison-predicate/c (self-map/c contract?)]
+               [variadic-comparison-selection/c (self-map/c contract?)]))
 
 (define (function/c source/c target/c)
   (-> source/c target/c))
