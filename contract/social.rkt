@@ -21,9 +21,7 @@
                [functional/c (->* () (contract?) contract?)]
                [binary-constructor/c (binary-composition/c contract?)]
                [classifier/c (->* () (contract?) contract?)]
-               [variadic-constructor/c (binary-composition/c contract?)]
-               [variadic-comparison-predicate/c (self-map/c contract?)]
-               [variadic-comparison-selection/c (self-map/c contract?)]))
+               [variadic-constructor/c (binary-composition/c contract?)]))
 
 (define (function/c source/c target/c)
   (-> source/c target/c))
@@ -77,17 +75,3 @@
 
 (define (variadic-constructor/c primitive/c composite/c)
   (variadic-function/c primitive/c composite/c))
-
-(define (variadic-comparison/c type/c return/c)
-  ;; TODO: improve to ensure that arguments are type/c
-  ;; (rather than any/c) when no key is provided
-  (->* (any/c)
-       (#:key (maybe/c (encoder/c type/c)))
-       #:rest list?
-       return/c))
-
-(define (variadic-comparison-predicate/c type/c)
-  (variadic-comparison/c type/c boolean?))
-
-(define (variadic-comparison-selection/c type/c)
-  (variadic-comparison/c type/c any/c))

@@ -4,8 +4,7 @@
          scribble/example
          racket/sandbox
          @for-label[contract/social
-                    racket/contract
-                    (except-in racket =)
+                    (except-in racket = predicate/c)
                     (only-in relation =)]]
 
 @(define eval-for-docs
@@ -15,7 +14,8 @@
                  (make-evaluator 'racket/base
                                  '(require (only-in relation =)
                                            racket/list
-                                           racket/contract
+                                           (except-in racket/contract
+                                                      predicate/c)
                                            contract/social))))
 
 @title{Social Contracts}
