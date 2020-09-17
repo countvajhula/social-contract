@@ -6,6 +6,7 @@
 
 (provide
  (contract-out [function/c (binary-composition/c contract?)]
+               [self-map/c (self-map/c contract?)]
                [thunk/c (self-map/c contract?)]
                [binary-function/c (-> contract? contract? contract? contract?)]
                [variadic-function/c (-> contract? contract? contract?)]
@@ -17,7 +18,6 @@
                [binary-composition/c (self-map/c contract?)]
                [variadic-composition/c (self-map/c contract?)]
                [reducer/c (self-map/c contract?)]
-               [self-map/c (self-map/c contract?)]
                [functional/c (->* () (contract?) contract?)]
                [binary-constructor/c (binary-composition/c contract?)]
                [classifier/c (->* () (contract?) contract?)]
