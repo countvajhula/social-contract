@@ -29,7 +29,7 @@ Collectively-defined contracts for commonly encountered types.
                      [target/c contract?])
          contract?]{
 
- A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c].
+ A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function).
 
 @examples[
     #:eval eval-for-docs
@@ -86,6 +86,11 @@ Collectively-defined contracts for commonly encountered types.
                               [target/c contract?])
          contract?]{}
 
+@defproc[(binary-variadic-function/c [a/c contract?]
+                                     [b/c contract?]
+                                     [target/c contract?])
+         contract?]{}
+
 @defproc[(predicate/c [on-type/c contract? any/c])
          contract?]{}
 
@@ -114,13 +119,29 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(functional/c [procedure/c contract? procedure?])
          contract?]{}
 
-@defproc[(binary-constructor/c [primitive/c contract?]
-                               [composite/c contract?])
-         contract?]{}
-
 @defproc[(classifier/c [by-type/c contract? any/c])
          contract?]{}
 
+@deftogether[(
+@defproc[(binary-constructor-abb/c [primitive/c contract?]
+                                   [composite/c contract?])
+         contract?]
+@defproc[(binary-constructor-bab/c [primitive/c contract?]
+                                   [composite/c contract?])
+         contract?]
+@defproc[(binary-constructor/c [primitive/c contract?]
+                               [composite/c contract?])
+         contract?]
+  )]{}
+
+@deftogether[(
+@defproc[(variadic-constructor-abb/c [primitive/c contract?]
+                                     [composite/c contract?])
+         contract?]
+@defproc[(variadic-constructor-bab/c [primitive/c contract?]
+                                     [composite/c contract?])
+         contract?]
 @defproc[(variadic-constructor/c [primitive/c contract?]
                                  [composite/c contract?])
-         contract?]{}
+         contract?]
+  )]{}
