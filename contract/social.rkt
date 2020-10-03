@@ -5,9 +5,9 @@
                   sequenceof))
 
 (provide
- (contract-out [function/c (binary-composition/c contract?)]
+ (contract-out [function/c (->* () (contract? contract?) contract?)]
                [self-map/c (self-map/c contract?)]
-               [thunk/c (self-map/c contract?)]
+               [thunk/c (->* () (contract?) contract?)]
                [binary-function/c (-> contract? contract? contract? contract?)]
                [variadic-function/c (binary-composition/c contract?)]
                [binary-variadic-function/c (-> contract? contract? contract? contract?)]
@@ -28,10 +28,10 @@
                [variadic-constructor-abb/c (binary-composition/c contract?)]
                [variadic-constructor-bab/c (binary-composition/c contract?)]))
 
-(define (function/c source/c target/c)
+(define (function/c [source/c any/c] [target/c any/c])
   (-> source/c target/c))
 
-(define (thunk/c target/c)
+(define (thunk/c [target/c any/c])
   (-> target/c))
 
 (define (binary-function/c a/c b/c target/c)

@@ -6,7 +6,6 @@
                     predicate/c)
          (only-in racket/list
                   rest)
-         relation
          contract/social
          (only-in racket/function thunk)
          "private/util.rkt")
@@ -19,7 +18,7 @@
        "Unary function contract"
      (define/contract (list-length lst)
        (function/c list? natural-number/c)
-       (if (= lst null)
+       (if (eq? lst null)
            0
            (add1 (list-length (rest lst)))))
      (check-equal? (list-length '(h e l l o)) 5)

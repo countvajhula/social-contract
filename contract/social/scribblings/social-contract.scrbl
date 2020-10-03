@@ -25,8 +25,8 @@
 
 Collectively-defined contracts for commonly encountered types.
 
-@defproc[(function/c [source/c contract?]
-                     [target/c contract?])
+@defproc[(function/c [source/c contract? any/c]
+                     [target/c contract? any/c])
          contract?]{
 
  A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function).
@@ -58,7 +58,7 @@ Collectively-defined contracts for commonly encountered types.
   ]
 }
 
-@defproc[(thunk/c [target/c contract?])
+@defproc[(thunk/c [target/c contract? any/c])
          contract?]{
 
  A contract to recognize a @hyperlink["https://beautifulracket.com/explainer/functions.html#a_alsKX"]{"thunk"}, i.e. a function taking no arguments, that returns a value of type @racket[target/c].
