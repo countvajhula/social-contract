@@ -6,7 +6,6 @@
                      "scribble-abbrevs"
                      "racket-doc"
                      "rackunit-lib"
-                     "relation"
                      "cover"
                      "cover-coveralls"
                      "sandbox-lib"))

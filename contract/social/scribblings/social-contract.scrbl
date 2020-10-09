@@ -4,16 +4,14 @@
          scribble/example
          racket/sandbox
          @for-label[contract/social
-                    (except-in racket = predicate/c)
-                    (only-in relation =)]]
+                    (except-in racket predicate/c)]]
 
 @(define eval-for-docs
   (parameterize ([sandbox-output 'string]
                  [sandbox-error-output 'string]
                  [sandbox-memory-limit #f])
                  (make-evaluator 'racket/base
-                                 '(require (only-in relation =)
-                                           racket/list
+                                 '(require racket/list
                                            (except-in racket/contract
                                                       predicate/c)
                                            contract/social))))
@@ -35,7 +33,7 @@ Collectively-defined contracts for commonly encountered types.
     #:eval eval-for-docs
     (define/contract (list-length lst)
       (function/c list? natural-number/c)
-      (if (= lst null)
+      (if (empty? lst)
         0
         (add1 (list-length (rest lst)))))
     (list-length '(h e l l o))
