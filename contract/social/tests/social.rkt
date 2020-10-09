@@ -13,7 +13,9 @@
 
 (module+ test
   (define tests
-    (check-true #t)
+    (test-suite
+     "Tests for social contracts"
+     (check-true #t))
     ;; (test-suite
     ;;  "Tests for social contracts"
 
