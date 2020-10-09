@@ -3,12 +3,12 @@
 (module+ test
   (require rackunit
            rackunit/text-ui
-           (except-in racket/contract
-                      predicate/c)
-           (only-in racket/list
-                    rest)
-           contract/social
-           (only-in racket/function thunk)
+           ;; (except-in racket/contract
+           ;;            predicate/c)
+           ;; (only-in racket/list
+           ;;          rest)
+           ;; contract/social
+           ;; (only-in racket/function thunk)
            "private/util.rkt"))
 
 (module+ test
