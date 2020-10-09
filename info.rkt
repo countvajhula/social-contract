@@ -9,15 +9,12 @@
                      "cover"
                      "cover-coveralls"
                      "sandbox-lib"))
-(define compile-omit-paths '("dev" "coverage" "tests"))
+(define compile-omit-paths '("dev" "tests" "coverage"))
 (define test-include-paths '("tests"))
 (define clean '("contract/compiled"
                 "contract/social/compiled"
                 "contract/social/doc"
-                "contract/social/doc/social-contract"
-                "contract/social/doc/social-contracts"
-                "contract/social/doc/common-contracts"
-                "tests/compiled"))
+                "contract/social/doc/social-contract"))
 (define pkg-desc "Common contracts.")
 (define version "0.0")
 (define pkg-authors '(countvajhula))
