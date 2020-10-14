@@ -111,6 +111,9 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(variadic-composition/c [type/c contract?])
          contract?]{}
 
+@defproc[(binary-variadic-composition/c [type/c contract?])
+         contract?]{}
+
 @defproc[(reducer/c [type/c contract? any/c]
                     [target/c contract? #f])
          contract?]{}

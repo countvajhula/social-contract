@@ -36,6 +36,7 @@
                              contract?)]
                [binary-composition/c (self-map/c contract?)]
                [variadic-composition/c (self-map/c contract?)]
+               [binary-variadic-composition/c (self-map/c contract?)]
                [classifier/c (->* ()
                                   (contract?)
                                   contract?)]
@@ -108,6 +109,9 @@
 
 (define (variadic-composition/c type/c)
   (variadic-function/c type/c type/c))
+
+(define (binary-variadic-composition/c type/c)
+  (binary-variadic-function/c type/c))
 
 (define (classifier/c [by-type/c any/c])
   (binary-function/c (encoder/c by-type/c)
