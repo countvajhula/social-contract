@@ -75,18 +75,18 @@ Collectively-defined contracts for commonly encountered types.
   ]
 }
 
-@defproc[(binary-function/c [a/c contract?]
-                            [b/c contract?]
-                            [target/c contract?])
+@defproc[(binary-function/c [a/c contract? any/c]
+                            [b/c contract? #f]
+                            [target/c contract? #f])
          contract?]{}
 
-@defproc[(variadic-function/c [source/c contract?]
-                              [target/c contract?])
+@defproc[(variadic-function/c [source/c contract? any/c]
+                              [target/c contract? #f])
          contract?]{}
 
-@defproc[(binary-variadic-function/c [a/c contract?]
-                                     [b/c contract?]
-                                     [target/c contract?])
+@defproc[(binary-variadic-function/c [a/c contract? any/c]
+                                     [b/c contract? #f]
+                                     [target/c contract? #f])
          contract?]{}
 
 @defproc[(predicate/c [on-type/c contract? any/c])
@@ -128,26 +128,12 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(filter/c [of-type/c contract? any/c])
          contract?]{}
 
-@deftogether[(
-@defproc[(binary-constructor-abb/c [primitive/c contract?]
-                                   [composite/c contract?])
-         contract?]
-@defproc[(binary-constructor-bab/c [primitive/c contract?]
-                                   [composite/c contract?])
-         contract?]
 @defproc[(binary-constructor/c [primitive/c contract?]
-                               [composite/c contract?])
-         contract?]
-  )]{}
+                               [composite/c contract?]
+                               [#:order order (one-of/c 'abb 'bab) 'abb])
+         contract?]{}
 
-@deftogether[(
-@defproc[(variadic-constructor-abb/c [primitive/c contract?]
-                                     [composite/c contract?])
-         contract?]
-@defproc[(variadic-constructor-bab/c [primitive/c contract?]
-                                     [composite/c contract?])
-         contract?]
 @defproc[(variadic-constructor/c [primitive/c contract?]
-                                 [composite/c contract?])
-         contract?]
-  )]{}
+                                 [composite/c contract?]
+                                 [#:order order (one-of/c 'abb 'bab) 'abb])
+         contract?]{}
