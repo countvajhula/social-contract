@@ -2,10 +2,11 @@
 
 (require racket/contract
          (only-in data/collection
-                  sequenceof))
+                  sequenceof
+                  sequence?))
 
 (provide
- (contract-out [function/c (->* () (contract? contract?) contract?)]
+ (contract-out [function/c (->* () (contract? (maybe/c contract?)) contract?)]
                [self-map/c (self-map/c contract?)]
                [thunk/c (->* () (contract?) contract?)]
                [binary-function/c (-> contract? contract? contract? contract?)]
@@ -18,18 +19,24 @@
                [maybe/c (->* (contract?) (contract?) contract?)]
                [binary-composition/c (self-map/c contract?)]
                [variadic-composition/c (self-map/c contract?)]
-               [reducer/c (self-map/c contract?)]
+               [classifier/c (->* () (contract?) contract?)]
+               [map/c (->* () (contract? (maybe/c contract?)) contract?)]
+               [filter/c (->* () (contract?) contract?)]
+               [reducer/c (->* () (contract? (maybe/c contract?)) contract?)]
                [functional/c (->* () (contract?) contract?)]
                [binary-constructor/c (binary-composition/c contract?)]
                [binary-constructor-abb/c (binary-composition/c contract?)]
                [binary-constructor-bab/c (binary-composition/c contract?)]
-               [classifier/c (->* () (contract?) contract?)]
                [variadic-constructor/c (binary-composition/c contract?)]
                [variadic-constructor-abb/c (binary-composition/c contract?)]
                [variadic-constructor-bab/c (binary-composition/c contract?)]))
 
-(define (function/c [source/c any/c] [target/c any/c])
-  (-> source/c target/c))
+(define (function/c [source/c any/c] [target/c #f])
+  (let ([target/c (or target/c source/c)])
+    (-> source/c target/c)))
+
+(define (self-map/c type/c)
+  (function/c type/c))
 
 (define (thunk/c [target/c any/c])
   (-> target/c))
@@ -64,11 +71,25 @@
 (define (variadic-composition/c type/c)
   (variadic-function/c type/c type/c))
 
-(define (reducer/c type/c)
-  (function/c (sequenceof type/c) type/c))
+(define (classifier/c [by-type/c any/c])
+  (binary-function/c (encoder/c by-type/c)
+                     sequence?
+                     (sequenceof sequence?)))
 
-(define (self-map/c type/c)
-  (function/c type/c type/c))
+(define (map/c [source/c any/c] [target/c #f])
+  (let ([target/c (or target/c source/c)])
+    (binary-function/c (function/c source/c target/c)
+                       (sequenceof source/c)
+                       (sequenceof target/c))))
+
+(define (filter/c [of-type/c any/c])
+  (binary-function/c (predicate/c of-type/c)
+                     (sequenceof of-type/c)
+                     (sequenceof of-type/c)))
+
+(define (reducer/c [type/c any/c] [target/c #f])
+  (let ([target/c (or target/c type/c)])
+    (function/c (sequenceof type/c) target/c)))
 
 (define (functional/c [procedure/c procedure?])
   (self-map/c procedure/c))
@@ -80,11 +101,6 @@
   (binary-function/c composite/c primitive/c composite/c))
 
 (define binary-constructor/c binary-constructor-abb/c)
-
-(define (classifier/c [by-type/c any/c])
-  (binary-function/c (encoder/c by-type/c)
-                     list?
-                     (listof list?)))
 
 (define (variadic-constructor-abb/c primitive/c composite/c)
   (binary-variadic-function/c primitive/c primitive/c composite/c))

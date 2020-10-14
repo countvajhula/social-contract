@@ -24,10 +24,10 @@
 Collectively-defined contracts for commonly encountered types.
 
 @defproc[(function/c [source/c contract? any/c]
-                     [target/c contract? any/c])
+                     [target/c contract? #f])
          contract?]{
 
- A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function).
+ A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function). If @racket[target/c] is left unspecified, it uses the same contract as @racket[source/c].
 
 @examples[
     #:eval eval-for-docs
@@ -44,7 +44,7 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(self-map/c [type/c contract?])
          contract?]{
 
- A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[domain/c] to a value of the same type.
+ A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type.
 
 @examples[
     #:eval eval-for-docs
@@ -111,13 +111,21 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(variadic-composition/c [type/c contract?])
          contract?]{}
 
-@defproc[(reducer/c [type/c contract?])
+@defproc[(reducer/c [type/c contract? any/c]
+                    [target/c contract? #f])
          contract?]{}
 
 @defproc[(functional/c [procedure/c contract? procedure?])
          contract?]{}
 
 @defproc[(classifier/c [by-type/c contract? any/c])
+         contract?]{}
+
+@defproc[(map/c [source/c contract? any/c]
+                [target/c contract? #f])
+         contract?]{}
+
+@defproc[(filter/c [of-type/c contract? any/c])
          contract?]{}
 
 @deftogether[(
