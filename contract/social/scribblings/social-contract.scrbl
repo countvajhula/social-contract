@@ -86,7 +86,8 @@ Collectively-defined contracts for commonly encountered types.
 
 @defproc[(binary-variadic-function/c [a/c contract? any/c]
                                      [b/c contract? #f]
-                                     [target/c contract? #f])
+                                     [target/c contract? #f]
+									 [#:tail? tail? boolean? #f])
          contract?]{}
 
 @defproc[(predicate/c [on-type/c contract? any/c])

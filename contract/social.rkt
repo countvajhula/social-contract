@@ -84,10 +84,13 @@
 
 (define (binary-variadic-function/c [a/c any/c]
                                     [b/c #f]
-                                    [target/c #f])
+                                    [target/c #f]
+                                    #:tail? [tail? #f])
   (let ([b/c (or b/c a/c)]
         [target/c (or target/c a/c)])
-    (-> a/c b/c ... target/c)))
+    (if tail?
+        (-> a/c ... b/c target/c)
+        (-> a/c b/c ... target/c))))
 
 (define (predicate/c [on-type/c any/c])
   (function/c on-type/c boolean?))
@@ -149,5 +152,5 @@
                                 composite/c
                                 #:order [order 'abb])
   (match order
-    ['abb (binary-variadic-function/c primitive/c primitive/c composite/c)]
+    ['abb (binary-variadic-function/c #:tail? #t primitive/c composite/c composite/c)]
     ['bab (binary-variadic-function/c composite/c primitive/c composite/c)]))
