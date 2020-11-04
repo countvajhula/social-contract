@@ -7,9 +7,9 @@
                   sequence?))
 
 (provide
- (contract-out [function/c (->* ()
-                                (contract? (maybe/c contract?))
-                                contract?)]
+ (contract-out [function/c (case->
+                            (-> contract?)
+                            (-> contract? contract? contract?))]
                [self-map/c (self-map/c contract?)]
                [thunk/c (->* () (contract?) contract?)]
                [binary-function/c (->* ()
@@ -59,13 +59,14 @@
                                             (#:order (one-of/c 'abb 'bab))
                                             contract?)]))
 
-(define (function/c [source/c any/c]
-                    [target/c #f])
-  (let ([target/c (or target/c source/c)])
-    (-> source/c target/c)))
+(define function/c
+  (case-lambda
+    [() (-> any/c any/c)]
+    [(source/c target/c)
+     (-> source/c target/c)]))
 
 (define (self-map/c type/c)
-  (function/c type/c))
+  (function/c type/c type/c))
 
 (define (thunk/c [target/c any/c])
   (-> target/c))

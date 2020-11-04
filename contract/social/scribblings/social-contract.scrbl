@@ -23,11 +23,13 @@
 
 Collectively-defined contracts for commonly encountered types.
 
-@defproc[(function/c [source/c contract? any/c]
-                     [target/c contract? #f])
-         contract?]{
+@defproc*[([(function/c)
+            contract?]
+           [(function/c [source/c contract?]
+                        [target/c contract?])
+            contract?])]{
 
- A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function). If @racket[target/c] is left unspecified, it uses the same contract as @racket[source/c].
+ A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function). If @racket[target/c] is expecting a value of the same type as @racket[source/c], prefer using @racket[self-map/c] instead. If left unspecified, @racket[source/c] and @racket[target/c] assume @racket[any/c].
 
 @examples[
     #:eval eval-for-docs
