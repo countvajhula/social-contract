@@ -96,6 +96,19 @@
 (define (predicate/c [on-type/c any/c])
   (function/c on-type/c boolean?))
 
+(define (binary-predicate/c [a/c any/c]
+                            [b/c #f])
+  (binary-function/c a/c b/c boolean?))
+
+(define (variadic-predicate/c [source/c any/c])
+  (variadic-function/c source/c boolean?))
+
+(define (binary-variadic-predicate/c [a/c any/c]
+                                     [b/c #f]
+                                     #:tail? [tail? #f])
+  (binary-variadic-function/c #:tail? tail?
+                              a/c b/c boolean?))
+
 (define (encoder/c as-type/c)
   (function/c any/c as-type/c))
 
