@@ -61,7 +61,7 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(thunk/c [target/c contract? any/c])
          contract?]{
 
- A contract to recognize a @hyperlink["https://beautifulracket.com/explainer/functions.html#a_alsKX"]{"thunk"}, i.e. a function taking no arguments, that returns a value of type @racket[target/c].
+ A contract to recognize a @hyperlink["https://beautifulracket.com/explainer/functions.html#a_alsKX"]{"thunk"}, i.e. a function taking no arguments, which returns a value of type @racket[target/c].
 
 @examples[
     #:eval eval-for-docs
@@ -80,20 +80,40 @@ Collectively-defined contracts for commonly encountered types.
 @defproc[(binary-function/c [a/c contract? any/c]
                             [b/c contract? #f]
                             [target/c contract? #f])
-         contract?]{}
+         contract?]{
+  A contract to recognize a @hyperlink["https://en.wikipedia.org/wiki/Binary_function"]{binary function}, that is, a function taking two arguments. The arguments are expected to be of type @racket[a/c] and @racket[b/c], respectively, and the return value is expected to be of type @racket[target/c].
+}
 
 @defproc[(variadic-function/c [source/c contract? any/c]
                               [target/c contract? #f])
-         contract?]{}
+         contract?]{
+  A contract to recognize a @hyperlink["https://beautifulracket.com/appendix/glossary.html#variadic"]{variadic} function, that is, a function taking an arbitrary number of arguments. The arguments are expected to all be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. If no contract is specified for the return value, it defaults to the input type.
+}
 
 @defproc[(binary-variadic-function/c [a/c contract? any/c]
                                      [b/c contract? #f]
                                      [target/c contract? #f]
-									 [#:tail? tail? boolean? #f])
-         contract?]{}
+                                     [#:tail? tail? boolean? #f])
+         contract?]{
+  Similar to @racket[variadic-function/c] but allows specification of two input types. If @racket[tail?] is false, then the contract expects the first argument to be of type @racket[a/c] and all subsequent arguments to be of type @racket[b/c]. If @racket[tail?] is true, then the contract expects the leading arguments to all be of type @racket[a/c] and the last argument to be of type @racket[b/c]. The return value is expected to be of type @racket[target/c].
 
+}
+
+@deftogether[(
 @defproc[(predicate/c [on-type/c contract? any/c])
-         contract?]{}
+         contract?]
+@defproc[(binary-predicate/c [a/c contract? any/c]
+                             [b/c contract? #f])
+         contract?]
+@defproc[(variadic-predicate/c [on-type/c contract? any/c])
+         contract?]
+@defproc[(binary-variadic-predicate/c [a/c contract? any/c]
+                                      [b/c contract? #f]
+                                      [#:tail? tail? boolean? #f])
+         contract?]
+)]{
+  Similar to @racket[function/c], @racket[binary-function/c], @racket[variadic-function/c] and @racket[binary-variadic-function/c], but these contracts recognize @hyperlink["https://en.wikipedia.org/wiki/Boolean-valued_function"]{predicates}, meaning that the output is expected to be of type @racket[boolean?].
+}
 
 @defproc[(encoder/c [as-type/c contract?])
          contract?]{}
