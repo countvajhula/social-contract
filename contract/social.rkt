@@ -23,11 +23,24 @@
                [binary-variadic-function/c (->* ()
                                                 (contract?
                                                  (maybe/c contract?)
-                                                 (maybe/c contract?))
+                                                 (maybe/c contract?)
+                                                 #:tail? (maybe/c contract?))
                                                 contract?)]
                [predicate/c (->* ()
                                  (contract?)
                                  contract?)]
+               [binary-predicate/c (->* ()
+                                        (contract?
+                                         (maybe/c contract?))
+                                        contract?)]
+               [variadic-predicate/c (->* ()
+                                          (contract?)
+                                          contract?)]
+               [binary-variadic-predicate/c (->* ()
+                                                 (contract?
+                                                  (maybe/c contract?)
+                                                  #:tail? (maybe/c contract?))
+                                                 contract?)]
                [encoder/c (self-map/c contract?)]
                [decoder/c (self-map/c contract?)]
                [hash-function/c (thunk/c contract?)]
