@@ -1,5 +1,8 @@
-.. image:: https://travis-ci.com/countvajhula/social-contract.svg?branch=master
-    :target: https://travis-ci.com/countvajhula/social-contract
+.. image:: https://github.com/countvajhula/social-contract/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/countvajhula/social-contract/actions/workflows/test.yml
+
+.. image:: https://coveralls.io/repos/github/countvajhula/social-contract/badge.svg?branch=master
+    :target: https://coveralls.io/github/countvajhula/social-contract?branch=master
 
 social-contract
 ===============
