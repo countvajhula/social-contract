@@ -8,7 +8,8 @@
                      "rackunit-lib"
                      "cover"
                      "cover-coveralls"
-                     "sandbox-lib"))
+                     "sandbox-lib"
+                     "adjutor"))
 (define pkg-desc "Common contracts.")
 (define version "0.0")
 (define pkg-authors '(countvajhula))
