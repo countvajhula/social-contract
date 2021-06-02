@@ -24,21 +24,22 @@
         0)
       (check-equal? (list-to-num '(h e l l o)) 0)
       (check-exn exn:fail:contract? (thunk (list-to-num "hello"))))
-    (test-case
-        "any with single value"
-      (define/contract (list-to-any lst)
-        (function/c list? any)
-        0)
-      (check-equal? (list-to-any '(h e l l o)) 0)
-      (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
-    (test-case
-        "any with multiple values"
-      (define/contract (list-to-any lst)
-        (function/c list? any)
-        (values 0 1))
-      (check-equal? (values->list (list-to-any '(h e l l o)))
-                    (list 0 1))
-      (check-exn exn:fail:contract? (thunk (list-to-any "hello")))))
+    ;; (test-case
+    ;;     "any with single value"
+    ;;   (define/contract (list-to-any lst)
+    ;;     (function/c list? any)
+    ;;     0)
+    ;;   (check-equal? (list-to-any '(h e l l o)) 0)
+    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
+    ;; (test-case
+    ;;     "any with multiple values"
+    ;;   (define/contract (list-to-any lst)
+    ;;     (function/c list? any)
+    ;;     (values 0 1))
+    ;;   (check-equal? (values->list (list-to-any '(h e l l o)))
+    ;;                 (list 0 1))
+    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
+    )
 
    (test-suite
     "self-map"
