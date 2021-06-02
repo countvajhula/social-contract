@@ -125,7 +125,187 @@
       (define/contract (as-b . as)
         (variadic-function/c negative?)
         -5)
-      (check-equal? (as-b -1 -2 -5) -5)))))
+      (check-equal? (as-b -1 -2 -5) -5)))
+
+   (test-suite
+    "binary-variadic-function/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (binary-variadic-function/c number? list? number?)
+        5)
+      (check-equal? (g 3 (list 1 2) null) 5)
+      (check-equal? (g 3) 5)
+      (check-exn exn:fail:contract? (thunk (g (list 1 2) null))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (binary-variadic-function/c)
+        5)
+      (check-equal? (g 2 3) 5)
+      (check-equal? (g 1) 5)
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Default variadic contract"
+      (define/contract (g . as)
+        (binary-variadic-function/c number?)
+        5)
+      (check-equal? (g 4 5 6) 5)
+      (check-exn exn:fail:contract? (thunk (g (list 1 2)))))
+    (test-case
+        "Default output contract"
+      (define/contract (g . as)
+        (binary-variadic-function/c number? list?)
+        5)
+      (check-equal? (g 3 (list 1 2) null) 5)
+      (check-exn exn:fail:contract? (thunk (g 3 5))))
+    (test-case
+        "Variadic head"
+      (define/contract (g . as)
+        (binary-variadic-function/c number? list? #:tail? #t)
+        5)
+      (check-equal? (g 3 4 5 (list 1 2)) 5)
+      (check-equal? (g (list 1 2)) 5)
+      (check-exn exn:fail:contract? (thunk (g 5)))))
+
+   (test-suite
+    "predicate/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (predicate/c number?)
+        #t)
+      (check-true (g 5))
+      (check-exn exn:fail:contract? (thunk (g null))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (predicate/c)
+        #t)
+      (check-true (g 5))
+      (check-true (g null))
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "binary-predicate/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (binary-predicate/c number? string?)
+        #t)
+      (check-true (g 5 "hi"))
+      (check-exn exn:fail:contract? (thunk (g 5 5))))
+    (test-case
+        "Defaults with one parameter"
+      (define/contract (g . as)
+        (binary-predicate/c number?)
+        #t)
+      (check-true (g 5 5))
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (check-exn exn:fail:contract? (thunk (g 5 "hi"))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (binary-predicate/c)
+        #t)
+      (check-true (g 5 "hi"))
+      (check-exn exn:fail:contract? (thunk (g 5)))))
+
+   (test-suite
+    "variadic-predicate/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (variadic-predicate/c number?)
+        #t)
+      (check-true (g 5))
+      (check-true (g 5 6))
+      (check-true (g))
+      (check-exn exn:fail:contract? (thunk (g "hi"))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (variadic-predicate/c)
+        #t)
+      (check-true (g 5))
+      (check-true (g "hi"))
+      (check-true (g))))
+
+   (test-suite
+    "binary-variadic-predicate/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (binary-variadic-predicate/c number? string?)
+        #t)
+      (check-true (g 2 "hi" "bye"))
+      (check-true (g 2))
+      (check-exn exn:fail:contract? (thunk (g "hi")))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (binary-variadic-predicate/c)
+        #t)
+      (check-true (g 2 3 5))
+      (check-true (g 2 "hi" 5))
+      (check-true (g 2))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Default with one parameter"
+      (define/contract (g . as)
+        (binary-variadic-predicate/c number?)
+        #t)
+      ;;... and tail
+      (check-true (g 5))
+      (check-true (g 5 6 7))
+      (check-exn exn:fail:contract? (thunk (g 5 "hi")))
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "encoder/c"
+    (test-case
+        "Basic"
+      (define/contract (g v)
+        (encoder/c number?)
+        5)
+      (check-equal? (g "hi") 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "decoder/c"
+    (test-case
+        "Basic"
+      (define/contract (g v)
+        (decoder/c string?)
+        5)
+      (check-equal? (g "hi") 5)
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "hash-function/c"
+    (test-case
+        "Basic"
+      (define/contract (g v)
+        (hash-function/c)
+        5)
+      (check-equal? (g "hi") 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "maybe/c"
+    (test-case
+        "Basic"
+      (check-true ((maybe/c string? zero?) "hi"))
+      (check-true ((maybe/c string? zero?) 0))
+      (check-false ((maybe/c string? zero?) 5)))
+    (test-case
+        "Default with no parameters"
+      (check-true ((maybe/c number?) 5))
+      (check-true ((maybe/c number?) #f))
+      (check-false ((maybe/c number?) "hi"))))))
 
 (module+ test
   (just-do
