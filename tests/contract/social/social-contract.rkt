@@ -5,9 +5,11 @@
          (except-in racket/contract
                     predicate/c)
          (only-in racket/list
-                  rest)
+                  first
+                  rest
+                  empty?)
          contract/social
-         (only-in racket/function thunk)
+         (only-in racket/function thunk curryr)
          (only-in adjutor values->list)
          "private/util.rkt")
 
@@ -305,7 +307,67 @@
         "Default with no parameters"
       (check-true ((maybe/c number?) 5))
       (check-true ((maybe/c number?) #f))
-      (check-false ((maybe/c number?) "hi"))))))
+      (check-false ((maybe/c number?) "hi"))))
+
+   (test-suite
+    "binary-composition/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (binary-composition/c number?)
+        5)
+      (check-equal? (g 1 2) 5)
+      (check-exn exn:fail:contract? (thunk (g 1 "2")))
+      (check-exn exn:fail:contract? (thunk (g 1)))
+      (check-exn exn:fail:contract? (thunk (g "1" "2")))))
+
+   (test-suite
+    "variadic-composition/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (variadic-composition/c number?)
+        5)
+      (check-equal? (g 1 2) 5)
+      (check-equal? (g 1) 5)
+      (check-equal? (g) 5)
+      (check-exn exn:fail:contract? (thunk (g "1")))
+      (check-exn exn:fail:contract? (thunk (g 1 "2")))))
+
+   (test-suite
+    "binary-variadic-composition/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (binary-variadic-composition/c number?)
+        5)
+      (check-equal? (g 1 2) 5)
+      (check-equal? (g 1 2 3) 5)
+      (check-equal? (g 1) 5)
+      (check-exn exn:fail:contract? (thunk (g)))))
+
+   (test-suite
+    "classifier/c"
+    (test-case
+        "Basic"
+      (define/contract (g cls-f lst)
+        (classifier/c number?)
+        (when (not (empty? lst))
+          (cls-f (first lst)))
+        (list (list 1 2) (list 3)))
+      (check-equal? (g (curryr remainder 3) (list 1 2 3)) (list (list 1 2) (list 3)))
+      (check-exn exn:fail:contract? (thunk (g number->string (list 1 2 3))))
+      (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g cls-f lst)
+        (classifier/c)
+        (when (not (empty? lst))
+          (cls-f (first lst)))
+        (list (list 1 2) (list 3)))
+      (check-equal? (g (curryr remainder 3) (list 1 2 3)) (list (list 1 2) (list 3)))
+      (check-equal? (g number->string (list 1 2 3)) (list (list 1 2) (list 3)))
+      (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5)))))))
 
 (module+ test
   (just-do
