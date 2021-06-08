@@ -367,7 +367,74 @@
         (list (list 1 2) (list 3)))
       (check-equal? (g (curryr remainder 3) (list 1 2 3)) (list (list 1 2) (list 3)))
       (check-equal? (g number->string (list 1 2 3)) (list (list 1 2) (list 3)))
-      (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5)))))))
+      (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5)))))
+
+   (test-suite
+    "map/c"
+    (test-case
+        "Basic"
+      (define/contract (g mapf lst)
+        (map/c string? number?)
+        (when (not (empty? lst))
+          (mapf (first lst)))
+        (list 5))
+      (check-equal? (g string->number (list "5")) (list 5))
+      (check-equal? (g string->number null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g string->number 5)))
+      (check-exn exn:fail:contract? (thunk (g add1 (list 5)))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g mapf lst)
+        (map/c)
+        (when (not (empty? lst))
+          (mapf (first lst)))
+        (list 5))
+      (check-equal? (g string->number (list "5")) (list 5))
+      (check-equal? (g add1 (list 5)) (list 5))
+      (check-equal? (g add1 null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g string->number 5))))
+    (test-case
+        "Default output contract"
+      (define/contract (g mapf lst)
+        (map/c number?)
+        (when (not (empty? lst))
+          (mapf (first lst)))
+        (list 5))
+      (check-equal? (g add1 (list 5)) (list 5))
+      (check-equal? (g add1 null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g number->string (list 5))))
+      (check-exn exn:fail:contract? (thunk (g add1 5)))))
+
+   (test-suite
+    "filter/c"
+    (test-case
+        "Basic"
+      (define/contract (g pred lst)
+        (filter/c number?)
+        (when (not (empty? lst))
+          (pred (first lst)))
+        (list 5))
+      (check-equal? (g positive? (list 1 2 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g positive? (list "1" "2" "3"))))
+      (define/contract (g2 pred lst)
+        (filter/c number?)
+        (pred "hi")
+        (list 5))
+      (check-exn exn:fail:contract? (thunk (g2 (λ (x) #t) (list 1 2 3)))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g pred lst)
+        (filter/c)
+        (when (not (empty? lst))
+          (pred (first lst)))
+        (list 5))
+      (check-equal? (g positive? (list 1 2 3)) (list 5))
+      (check-equal? (g (λ (x) #t) (list "1" "2" "3")) (list 5))
+      (define/contract (g2 pred lst)
+        (filter/c)
+        (pred "hi")
+        (list 5))
+      (check-equal? (g2 (λ (x) #t) (list 1 2 3)) (list 5))))))
 
 (module+ test
   (just-do
