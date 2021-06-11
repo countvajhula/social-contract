@@ -434,7 +434,118 @@
         (filter/c)
         (pred "hi")
         (list 5))
-      (check-equal? (g2 (λ (x) #t) (list 1 2 3)) (list 5))))))
+      (check-equal? (g2 (λ (x) #t) (list 1 2 3)) (list 5))))
+
+   (test-suite
+    "reducer/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (reducer/c string? number?)
+        5)
+      (check-equal? (g (list "a" "b")) 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g (list 1 2))))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g . as)
+        (reducer/c)
+        5)
+      (check-equal? (g (list "a" "b")) 5)
+      (check-equal? (g (list 1 2)) 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Default output contract"
+      (define/contract (g . as)
+        (reducer/c number?)
+        5)
+      (check-equal? (g (list 1 2)) 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (check-exn exn:fail:contract? (thunk (g (list "a" "b"))))))
+
+   (test-suite
+    "functional/c"
+    (test-case
+        "Basic"
+      (define/contract (g h)
+        (functional/c procedure?)
+        add1)
+      (check-equal? (g sqrt) add1)
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (define/contract (g2 h)
+        (functional/c procedure?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 add1))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g h)
+        (functional/c)
+        add1)
+      (check-equal? (g sqrt) add1)
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (define/contract (g2 h)
+        (functional/c)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 add1)))))
+
+   (test-suite
+    "binary-constructor/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (binary-constructor/c number? list?)
+        (list 5))
+      (check-equal? (g 5 (list 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (check-exn exn:fail:contract? (thunk (g 5 6)))
+      (define/contract (g2 a b)
+        (binary-constructor/c number? list?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 5 (list 4)))))
+    (test-case
+        "bab"
+      (define/contract (g a b)
+        (binary-constructor/c number? list? #:order 'bab)
+        (list 5))
+      (check-equal? (g (list 3) 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list 5))))
+      (check-exn exn:fail:contract? (thunk (g (list 5) (list 6))))
+      (define/contract (g2 a b)
+        (binary-constructor/c number? list? #:order 'bab)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 (list 4) 5)))))
+
+   (test-suite
+    "variadic-constructor/c"
+    (test-case
+        "Basic"
+      (define/contract (g . as)
+        (variadic-constructor/c number? list?)
+        (list 5))
+      (check-equal? (g 1 (list 3)) (list 5))
+      (check-equal? (g 1 2 3 (list 3)) (list 5))
+      (check-equal? (g (list 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list 4) (list 2))))
+      (define/contract (g2 . as)
+        (variadic-constructor/c number? list?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 1 (list 3)))))
+    (test-case
+        "bab"
+      (define/contract (g . as)
+        (variadic-constructor/c number? list? #:order 'bab)
+        (list 5))
+      (check-equal? (g (list 3) 1) (list 5))
+      (check-equal? (g (list 3) 1 2 3) (list 5))
+      (check-equal? (g (list 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list 4) (list 2))))
+      (define/contract (g2 . as)
+        (variadic-constructor/c number? list? #:order 'bab)
+        5)
+      (check-exn exn:fail:contract? (thunk (g2 (list 3) 1)))))))
 
 (module+ test
   (just-do
