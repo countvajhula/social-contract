@@ -25,13 +25,24 @@
         (function/c list? natural-number/c)
         0)
       (check-equal? (g '(h e l l o)) 0)
-      (check-exn exn:fail:contract? (thunk (g "hello"))))
+      (check-exn exn:fail:contract? (thunk (g "hello")))
+      (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
+      (check-exn exn:fail:contract? (thunk (g))))
     (test-case
         "Return value"
       (define/contract (g lst)
         (function/c list? natural-number/c)
         (list 0))
       (check-exn exn:fail:contract? (thunk (g '(h e l l o)))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g lst)
+        (function/c)
+        0)
+      (check-equal? (g '(h e l l o)) 0)
+      (check-equal? (g "hello") 0)
+      (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
+      (check-exn exn:fail:contract? (thunk (g))))
     ;; (test-case
     ;;     "any with single value"
     ;;   (define/contract (list-to-any lst)
