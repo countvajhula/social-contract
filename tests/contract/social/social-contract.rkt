@@ -44,20 +44,33 @@
       (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
       (check-exn exn:fail:contract? (thunk (g))))
     ;; (test-case
-    ;;     "any with single value"
-    ;;   (define/contract (list-to-any lst)
-    ;;     (function/c list? any)
-    ;;     0)
-    ;;   (check-equal? (list-to-any '(h e l l o)) 0)
-    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
-    ;; (test-case
-    ;;     "any with multiple values"
-    ;;   (define/contract (list-to-any lst)
+    ;;     "any"
+    ;;   (define/contract (g lst)
     ;;     (function/c list? any)
     ;;     (values 0 1))
-    ;;   (check-equal? (values->list (list-to-any '(h e l l o)))
+    ;;   (check-equal? (values->list (g '(h e l l o)))
     ;;                 (list 0 1))
-    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
+    ;;   (check-exn exn:fail:contract? (thunk (g "hello"))))
+    ;; (test-case
+    ;;     "values"
+    ;;   (define/contract (g lst)
+    ;;     (function/c list? (values positive? negative?))
+    ;;     (values 1 -1))
+    ;;   (check-equal? (values->list (g '(h e l l o)))
+    ;;                 (list 1 -1))
+    ;;   (check-exn exn:fail:contract? (thunk (g "hello"))))
+    ;; (test-case
+    ;;     "case->"
+    ;;   (define/contract (g lst)
+    ;;     (case->
+    ;;      (function/c string? number?)
+    ;;      (function/c list?))
+    ;;     (case-lambda
+    ;;       [() (list 1 2)]
+    ;;       [(arg) 0]))
+    ;;   (check-equal? (g "hello") 0)
+    ;;   (check-equal? (g) (list 1 2))
+    ;;   (check-exn exn:fail:contract? (thunk (g 1))))
     )
 
    (test-suite
