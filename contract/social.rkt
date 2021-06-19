@@ -2,15 +2,15 @@
 
 (require racket/contract
          racket/match
+         syntax/parse/define
+         (for-syntax racket/base)
          (only-in data/collection
                   sequenceof
                   sequence?))
 
 (provide
- (contract-out [function/c (case->
-                            (-> contract?)
-                            (-> contract? contract? contract?))]
-               [self-map/c (self-map/c contract?)]
+ function/c
+ (contract-out [self-map/c (self-map/c contract?)]
                [thunk/c (->* () (contract?) contract?)]
                [binary-function/c (->* ()
                                        (contract?
@@ -72,11 +72,9 @@
                                             (#:order (one-of/c 'abb 'bab))
                                             contract?)]))
 
-(define function/c
-  (case-lambda
-    [() (-> any/c any/c)]
-    [(source/c target/c)
-     (-> source/c target/c)]))
+(define-syntax-parser function/c
+  [(_) #'(-> any/c any/c)]
+  [(_ source/c target/c) #'(-> source/c target/c)])
 
 (define (self-map/c type/c)
   (function/c type/c type/c))

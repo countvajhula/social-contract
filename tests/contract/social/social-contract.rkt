@@ -43,22 +43,22 @@
       (check-equal? (g "hello") 0)
       (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
       (check-exn exn:fail:contract? (thunk (g))))
-    ;; (test-case
-    ;;     "any"
-    ;;   (define/contract (g lst)
-    ;;     (function/c list? any)
-    ;;     (values 0 1))
-    ;;   (check-equal? (values->list (g '(h e l l o)))
-    ;;                 (list 0 1))
-    ;;   (check-exn exn:fail:contract? (thunk (g "hello"))))
-    ;; (test-case
-    ;;     "values"
-    ;;   (define/contract (g lst)
-    ;;     (function/c list? (values positive? negative?))
-    ;;     (values 1 -1))
-    ;;   (check-equal? (values->list (g '(h e l l o)))
-    ;;                 (list 1 -1))
-    ;;   (check-exn exn:fail:contract? (thunk (g "hello"))))
+    (test-case
+        "any"
+      (define/contract (g lst)
+        (function/c list? any)
+        (values 0 1))
+      (check-equal? (values->list (g '(h e l l o)))
+                    (list 0 1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
+    (test-case
+        "values"
+      (define/contract (g lst)
+        (function/c list? (values positive? negative?))
+        (values 1 -1))
+      (check-equal? (values->list (g '(h e l l o)))
+                    (list 1 -1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
     ;; (test-case
     ;;     "case->"
     ;;   (define/contract (g lst)
