@@ -21,10 +21,8 @@
  thunk/c
  self-map/c
  binary-function/c
- (contract-out [variadic-function/c (->* ()
-                                         (contract? (maybe/c contract?))
-                                         contract?)]
-               [binary-variadic-function/c (->* ()
+ variadic-function/c
+ (contract-out [binary-variadic-function/c (->* ()
                                                 (contract?
                                                  (maybe/c contract?)
                                                  (maybe/c contract?)
@@ -93,10 +91,14 @@
   [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
   [_ #'(-> any/c any/c any/c)])
 
-(define (variadic-function/c [source/c any/c]
-                             [target/c #f])
-  (let ([target/c (or target/c source/c)])
-    (-> source/c ... target/c)))
+(define-syntax-parser variadic-function/c
+  [(_ source/c target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> source/c ··· target/c)]
+  [(_) #:with ··· (quote-syntax ...) ; backwards compat - remove later
+       #'(-> any/c ··· any/c)]
+  [_ #:with ··· (quote-syntax ...)
+     #'(-> any/c ··· any/c)])
 
 (define (binary-variadic-function/c [a/c any/c]
                                     [b/c #f]

@@ -180,6 +180,13 @@
     (test-case
         "All default contracts"
       (define/contract (g . as)
+        variadic-function/c
+        5)
+      (check-equal? (g -1 -2 -5) 5)
+      (check-equal? (g "hi" -2 -5) 5))
+    (test-case
+        "All default contracts - backwards compat"
+      (define/contract (g . as)
         (variadic-function/c)
         5)
       (check-equal? (g -1 -2 -5) 5)
