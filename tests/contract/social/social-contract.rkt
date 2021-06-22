@@ -107,7 +107,23 @@
       (define/contract (list-thunk)
         (thunk/c list?)
         0)
-      (check-exn exn:fail:contract? (thunk (list-thunk)))))
+      (check-exn exn:fail:contract? (thunk (list-thunk))))
+    (test-case
+        "any"
+      (define/contract (g)
+        (thunk/c any)
+        (values 0 1))
+      (check-equal? (values->list (g))
+                    (list 0 1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
+    (test-case
+        "values"
+      (define/contract (g)
+        (thunk/c (values positive? negative?))
+        (values 1 -1))
+      (check-equal? (values->list (g))
+                    (list 1 -1))
+      (check-exn exn:fail:contract? (thunk (g "hello")))))
 
    (test-suite
     "binary-function/c"

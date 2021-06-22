@@ -10,8 +10,8 @@
 
 (provide
  function/c
+ thunk/c
  (contract-out [self-map/c (self-map/c contract?)]
-               [thunk/c (->* () (contract?) contract?)]
                [binary-function/c (->* ()
                                        (contract?
                                         (maybe/c contract?)
@@ -79,8 +79,9 @@
 (define (self-map/c type/c)
   (function/c type/c type/c))
 
-(define (thunk/c [target/c any/c])
-  (-> target/c))
+(define-syntax-parser thunk/c
+  [(_ (~optional target/c #:defaults ([target/c #'any/c])))
+   #'(-> target/c)])
 
 (define (binary-function/c [a/c any/c]
                            [b/c #f]
