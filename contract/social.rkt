@@ -3,16 +3,24 @@
 (require racket/contract
          racket/match
          syntax/parse/define
+         version-case
+         (only-in mischief/shorthand define-alias)
          (for-syntax racket/base)
          (only-in data/collection
                   sequenceof
                   sequence?))
 
+(version-case
+ [(version< (version) "7.9.0.22")
+  (define-alias define-syntax-parse-rule define-simple-macro)]
+ [else
+  (define-alias define-syntax-parse-rule define-syntax-parse-rule)])
+
 (provide
  function/c
  thunk/c
- (contract-out [self-map/c (self-map/c contract?)]
-               [binary-function/c (->* ()
+ self-map/c
+ (contract-out [binary-function/c (->* ()
                                        (contract?
                                         (maybe/c contract?)
                                         (maybe/c contract?))
@@ -76,7 +84,7 @@
   [(_) #'(-> any/c any/c)]
   [(_ source/c target/c) #'(-> source/c target/c)])
 
-(define (self-map/c type/c)
+(define-syntax-parse-rule (self-map/c type/c)
   (function/c type/c type/c))
 
 (define-syntax-parser thunk/c
