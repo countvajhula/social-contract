@@ -152,23 +152,15 @@
     (test-case
         "All default contracts"
       (define/contract (g a b)
-        (binary-function/c)
+        binary-function/c
         (* a b))
       (check-equal? (g 2 -3) -6))
     (test-case
-        "Default to first input contract"
+        "All default contracts - backwards compat"
       (define/contract (g a b)
-        (binary-function/c positive?)
+        (binary-function/c)
         (* a b))
-      (check-equal? (g 2 3) 6)
-      (check-exn exn:fail:contract? (thunk (g -2 3))))
-    (test-case
-        "Default output to first input contracts"
-      (define/contract (g a b)
-        (binary-function/c negative? positive?)
-        (* a b))
-      (check-equal? (g -3 2) -6)
-      (check-exn exn:fail:contract? (thunk (g 3 -2)))))
+      (check-equal? (g 2 -3) -6)))
 
    (test-suite
     "variadic-function/c"
