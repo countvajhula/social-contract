@@ -13,8 +13,7 @@
 (version-case
  [(version< (version) "7.9.0.22")
   (define-alias define-syntax-parse-rule define-simple-macro)]
- [else
-  (define-alias define-syntax-parse-rule define-syntax-parse-rule)])
+ [else])
 
 (provide
  function/c
