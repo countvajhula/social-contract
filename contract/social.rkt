@@ -81,8 +81,9 @@
                                             contract?)]))
 
 (define-syntax-parser function/c
-  [(_) #'(-> any/c any/c)]
-  [(_ source/c target/c) #'(-> source/c target/c)])
+  [(_ source/c target/c) #'(-> source/c target/c)]
+  [(_) #'(-> any/c any/c)] ; backwards compat - remove later
+  [_ #'(-> any/c any/c)])
 
 (define-syntax-parse-rule (self-map/c type/c)
   (function/c type/c type/c))

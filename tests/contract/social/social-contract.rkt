@@ -37,6 +37,15 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g lst)
+        function/c
+        0)
+      (check-equal? (g '(h e l l o)) 0)
+      (check-equal? (g "hello") 0)
+      (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g lst)
         (function/c)
         0)
       (check-equal? (g '(h e l l o)) 0)
