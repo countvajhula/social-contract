@@ -2,6 +2,7 @@
 (define collection 'multi)
 (define deps '("base"
                "collections-lib"
+               "mischief"
                "version-case"))
 (define build-deps '("scribble-lib"
                      "scribble-abbrevs"
