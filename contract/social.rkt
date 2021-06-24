@@ -21,13 +21,7 @@
  self-map/c
  binary-function/c
  variadic-function/c
- (contract-out [binary-variadic-function/c (->* ()
-                                                (contract?
-                                                 (maybe/c contract?)
-                                                 (maybe/c contract?)
-                                                 #:tail? (maybe/c contract?))
-                                                contract?)]
-               [predicate/c (->* ()
+ (contract-out [predicate/c (->* ()
                                  (contract?)
                                  contract?)]
                [binary-predicate/c (->* ()
@@ -90,7 +84,19 @@
   [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
   [_ #'(-> any/c any/c any/c)])
 
+;; TODO: support any number of contracts preceding
+;; the variadic argument.
+;; maybe DSL-ify it so that we can indicate the arity
+;; of distinct contracts beforehand, so that they can
+;; default to the right _number_ of them, and can be
+;; left unspecified
 (define-syntax-parser variadic-function/c
+  [(_ a/c ((~datum tail) b/c) target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> a/c ··· b/c target/c)]
+  [(_ a/c b/c target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> a/c b/c ··· target/c)]
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(-> source/c ··· target/c)]
@@ -98,16 +104,6 @@
        #'(-> any/c ··· any/c)]
   [_ #:with ··· (quote-syntax ...)
      #'(-> any/c ··· any/c)])
-
-(define (binary-variadic-function/c [a/c any/c]
-                                    [b/c #f]
-                                    [target/c #f]
-                                    #:tail? [tail? #f])
-  (let ([b/c (or b/c a/c)]
-        [target/c (or target/c a/c)])
-    (if tail?
-        (-> a/c ... b/c target/c)
-        (-> a/c b/c ... target/c))))
 
 (define (predicate/c [on-type/c any/c])
   (function/c on-type/c boolean?))
@@ -122,7 +118,7 @@
 (define (binary-variadic-predicate/c [a/c any/c]
                                      [b/c #f]
                                      #:tail? [tail? #f])
-  (binary-variadic-function/c #:tail? tail?
+  (variadic-function/c #:tail? tail?
                               a/c b/c boolean?))
 
 (define (encoder/c as-type/c)
@@ -144,7 +140,7 @@
   (variadic-function/c type/c type/c))
 
 (define (binary-variadic-composition/c type/c)
-  (binary-variadic-function/c type/c))
+  (variadic-function/c type/c))
 
 (define (classifier/c [by-type/c any/c])
   (binary-function/c (encoder/c by-type/c)
@@ -182,5 +178,5 @@
                                 composite/c
                                 #:order [order 'abb])
   (match order
-    ['abb (binary-variadic-function/c #:tail? #t primitive/c composite/c composite/c)]
-    ['bab (binary-variadic-function/c composite/c primitive/c composite/c)]))
+    ['abb (variadic-function/c #:tail? #t primitive/c composite/c composite/c)]
+    ['bab (variadic-function/c composite/c primitive/c composite/c)]))

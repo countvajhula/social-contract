@@ -203,37 +203,15 @@
     (test-case
         "Basic"
       (define/contract (g . as)
-        (binary-variadic-function/c number? list? number?)
+        (variadic-function/c number? list? number?)
         5)
       (check-equal? (g 3 (list 1 2) null) 5)
       (check-equal? (g 3) 5)
       (check-exn exn:fail:contract? (thunk (g (list 1 2) null))))
     (test-case
-        "Defaults with no parameters"
-      (define/contract (g . as)
-        (binary-variadic-function/c)
-        5)
-      (check-equal? (g 2 3) 5)
-      (check-equal? (g 1) 5)
-      (check-exn exn:fail:contract? (thunk (g))))
-    (test-case
-        "Default variadic contract"
-      (define/contract (g . as)
-        (binary-variadic-function/c number?)
-        5)
-      (check-equal? (g 4 5 6) 5)
-      (check-exn exn:fail:contract? (thunk (g (list 1 2)))))
-    (test-case
-        "Default output contract"
-      (define/contract (g . as)
-        (binary-variadic-function/c number? list?)
-        5)
-      (check-equal? (g 3 (list 1 2) null) 5)
-      (check-exn exn:fail:contract? (thunk (g 3 5))))
-    (test-case
         "Variadic head"
       (define/contract (g . as)
-        (binary-variadic-function/c number? list? #:tail? #t)
+        (variadic-function/c number? (tail list?) number?)
         5)
       (check-equal? (g 3 4 5 (list 1 2)) 5)
       (check-equal? (g (list 1 2)) 5)
