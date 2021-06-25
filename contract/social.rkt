@@ -21,22 +21,10 @@
  self-map/c
  binary-function/c
  variadic-function/c
- (contract-out [predicate/c (->* ()
-                                 (contract?)
-                                 contract?)]
-               [binary-predicate/c (->* ()
-                                        (contract?
-                                         (maybe/c contract?))
-                                        contract?)]
-               [variadic-predicate/c (->* ()
-                                          (contract?)
-                                          contract?)]
-               [binary-variadic-predicate/c (->* ()
-                                                 (contract?
-                                                  (maybe/c contract?)
-                                                  #:tail? (maybe/c contract?))
-                                                 contract?)]
-               [encoder/c (self-map/c contract?)]
+ predicate/c
+ binary-predicate/c
+ variadic-predicate/c
+ (contract-out [encoder/c (self-map/c contract?)]
                [decoder/c (self-map/c contract?)]
                [hash-function/c (thunk/c contract?)]
                [maybe/c (->* (contract?)
@@ -105,21 +93,27 @@
   [_ #:with ··· (quote-syntax ...)
      #'(-> any/c ··· any/c)])
 
-(define (predicate/c [on-type/c any/c])
-  (function/c on-type/c boolean?))
+;; review variadic as the need presents itself
 
-(define (binary-predicate/c [a/c any/c]
-                            [b/c #f])
-  (binary-function/c a/c b/c boolean?))
+(define-syntax-parser predicate/c
+  [(_ on-type/c) #'(function/c on-type/c boolean?)]
+  [(_) #'(function/c any/c boolean?)]
+  [_ #'(function/c any/c boolean?)])
 
-(define (variadic-predicate/c [source/c any/c])
-  (variadic-function/c source/c boolean?))
+(define-syntax-parser binary-predicate/c
+  [(_ a/c b/c) #'(binary-function/c a/c b/c boolean?)]
+  [(_ on-type/c) #'(binary-function/c on-type/c on-type/c boolean?)]
+  [(_) #'(binary-function/c any/c any/c boolean?)] ; backwards compat - remove later
+  [_ #'(binary-function/c any/c any/c boolean?)])
 
-(define (binary-variadic-predicate/c [a/c any/c]
-                                     [b/c #f]
-                                     #:tail? [tail? #f])
-  (variadic-function/c #:tail? tail?
-                              a/c b/c boolean?))
+(define-syntax-parser variadic-predicate/c
+  [(_ a/c ((~datum tail) b/c))
+   #'(variadic-function/c a/c (tail b/c) boolean?)]
+  [(_ a/c b/c)
+   #'(variadic-function/c a/c b/c boolean?)]
+  [(_ source/c) #'(variadic-function/c source/c boolean?)]
+  [(_) #'(variadic-function/c any/c boolean?)] ; backwards compat - remove later
+  [_ #'(variadic-function/c any/c boolean?)])
 
 (define (encoder/c as-type/c)
   (function/c any/c as-type/c))

@@ -229,6 +229,14 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g . as)
+        predicate/c
+        #t)
+      (check-true (g 5))
+      (check-true (g null))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g . as)
         (predicate/c)
         #t)
       (check-true (g 5))
@@ -255,6 +263,13 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g . as)
+        binary-predicate/c
+        #t)
+      (check-true (g 5 "hi"))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g . as)
         (binary-predicate/c)
         #t)
       (check-true (g 5 "hi"))
@@ -278,6 +293,14 @@
         #t)
       (check-true (g 5))
       (check-true (g "hi"))
+      (check-true (g)))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g . as)
+        (variadic-predicate/c)
+        #t)
+      (check-true (g 5))
+      (check-true (g "hi"))
       (check-true (g))))
 
    (test-suite
@@ -285,31 +308,20 @@
     (test-case
         "Basic"
       (define/contract (g . as)
-        (binary-variadic-predicate/c number? string?)
+        (variadic-predicate/c number? string?)
         #t)
       (check-true (g 2 "hi" "bye"))
       (check-true (g 2))
       (check-exn exn:fail:contract? (thunk (g "hi")))
       (check-exn exn:fail:contract? (thunk (g))))
     (test-case
-        "Defaults with no parameters"
+        "Variadic head"
       (define/contract (g . as)
-        (binary-variadic-predicate/c)
+        (variadic-predicate/c number? (tail list?))
         #t)
-      (check-true (g 2 3 5))
-      (check-true (g 2 "hi" 5))
-      (check-true (g 2))
-      (check-exn exn:fail:contract? (thunk (g))))
-    (test-case
-        "Default with one parameter"
-      (define/contract (g . as)
-        (binary-variadic-predicate/c number?)
-        #t)
-      ;;... and tail
-      (check-true (g 5))
-      (check-true (g 5 6 7))
-      (check-exn exn:fail:contract? (thunk (g 5 "hi")))
-      (check-exn exn:fail:contract? (thunk (g)))))
+      (check-true (g 3 4 5 (list 1 2)))
+      (check-true (g (list 1 2)))
+      (check-exn exn:fail:contract? (thunk (g 5)))))
 
    (test-suite
     "encoder/c"
