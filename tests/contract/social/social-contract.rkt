@@ -349,6 +349,14 @@
     (test-case
         "Basic"
       (define/contract (g v)
+        hash-function/c
+        5)
+      (check-equal? (g "hi") 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Basic - backwards compat"
+      (define/contract (g v)
         (hash-function/c)
         5)
       (check-equal? (g "hi") 5)

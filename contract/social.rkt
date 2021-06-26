@@ -26,8 +26,8 @@
  variadic-predicate/c
  encoder/c
  decoder/c
- (contract-out [hash-function/c (thunk/c contract?)]
-               [maybe/c (->* (contract?)
+ hash-function/c
+ (contract-out [maybe/c (->* (contract?)
                              (contract?)
                              contract?)]
                [binary-composition/c (self-map/c contract?)]
@@ -121,8 +121,9 @@
 (define-syntax-parse-rule (decoder/c from-type/c)
   (function/c from-type/c any/c))
 
-(define (hash-function/c)
-  (encoder/c fixnum?))
+(define-syntax-parser hash-function/c
+  [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
+  [_ #'(encoder/c fixnum?)])
 
 (define (maybe/c type/c [default/c #f])
   (or/c type/c default/c))
