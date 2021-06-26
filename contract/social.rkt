@@ -24,9 +24,9 @@
  predicate/c
  binary-predicate/c
  variadic-predicate/c
- (contract-out [encoder/c (self-map/c contract?)]
-               [decoder/c (self-map/c contract?)]
-               [hash-function/c (thunk/c contract?)]
+ encoder/c
+ decoder/c
+ (contract-out [hash-function/c (thunk/c contract?)]
                [maybe/c (->* (contract?)
                              (contract?)
                              contract?)]
@@ -115,10 +115,10 @@
   [(_) #'(variadic-function/c any/c boolean?)] ; backwards compat - remove later
   [_ #'(variadic-function/c any/c boolean?)])
 
-(define (encoder/c as-type/c)
+(define-syntax-parse-rule (encoder/c as-type/c)
   (function/c any/c as-type/c))
 
-(define (decoder/c from-type/c)
+(define-syntax-parse-rule (decoder/c from-type/c)
   (function/c from-type/c any/c))
 
 (define (hash-function/c)
