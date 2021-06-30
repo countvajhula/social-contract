@@ -27,13 +27,10 @@
  encoder/c
  decoder/c
  hash-function/c
- (contract-out [maybe/c (->* (contract?)
-                             (contract?)
-                             contract?)]
-               [binary-composition/c (self-map/c contract?)]
-               [variadic-composition/c (self-map/c contract?)]
-               [binary-variadic-composition/c (self-map/c contract?)]
-               [classifier/c (->* ()
+ maybe/c
+ binary-composition/c
+ variadic-composition/c
+ (contract-out [classifier/c (->* ()
                                   (contract?)
                                   contract?)]
                [map/c (->* ()
@@ -88,10 +85,12 @@
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(-> source/c ··· target/c)]
-  [(_) #:with ··· (quote-syntax ...) ; backwards compat - remove later
-       #'(-> any/c ··· any/c)]
-  [_ #:with ··· (quote-syntax ...)
-     #'(-> any/c ··· any/c)])
+  [(_)
+   #:with ··· (quote-syntax ...) ; backwards compat - remove later
+   #'(-> any/c ··· any/c)]
+  [_
+   #:with ··· (quote-syntax ...)
+   #'(-> any/c ··· any/c)])
 
 ;; review variadic as the need presents itself
 
@@ -125,17 +124,16 @@
   [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
   [_ #'(encoder/c fixnum?)])
 
-(define (maybe/c type/c [default/c #f])
-  (or/c type/c default/c))
+(define-syntax-parser maybe/c
+  [(_ type/c (~optional default/c #:defaults ([default/c #'#f])))
+   #'(or/c type/c default/c)])
 
-(define (binary-composition/c type/c)
+(define-syntax-parse-rule (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
 
-(define (variadic-composition/c type/c)
-  (variadic-function/c type/c type/c))
-
-(define (binary-variadic-composition/c type/c)
-  (variadic-function/c type/c))
+(define-syntax-parser variadic-composition/c
+  [(_ type/c) #'(variadic-function/c type/c type/c)]
+  [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
 
 (define (classifier/c [by-type/c any/c])
   (binary-function/c (encoder/c by-type/c)

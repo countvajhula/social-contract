@@ -399,14 +399,11 @@
       (check-equal? (g 1) 5)
       (check-equal? (g) 5)
       (check-exn exn:fail:contract? (thunk (g "1")))
-      (check-exn exn:fail:contract? (thunk (g 1 "2")))))
-
-   (test-suite
-    "binary-variadic-composition/c"
+      (check-exn exn:fail:contract? (thunk (g 1 "2"))))
     (test-case
-        "Basic"
+        "Binary"
       (define/contract (g . as)
-        (binary-variadic-composition/c number?)
+        (variadic-composition/c number? number?)
         5)
       (check-equal? (g 1 2) 5)
       (check-equal? (g 1 2 3) 5)
