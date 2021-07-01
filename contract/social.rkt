@@ -51,8 +51,9 @@
   (function/c type/c type/c))
 
 (define-syntax-parser thunk/c
-  [(_ (~optional target/c #:defaults ([target/c #'any/c])))
-   #'(-> target/c)])
+  [(_ target/c) #'(-> target/c)]
+  [(_) #'(-> any/c)] ; backwards compat - remove later
+  [_ #'(-> any/c)])
 
 (define-syntax-parser binary-function/c
   [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
@@ -115,8 +116,8 @@
   [_ #'(encoder/c fixnum?)])
 
 (define-syntax-parser maybe/c
-  [(_ type/c (~optional default/c #:defaults ([default/c #'#f])))
-   #'(or/c type/c default/c)])
+  [(_ type/c default/c) #'(or/c type/c default/c)]
+  [(_ type/c) #'(or/c type/c #f)])
 
 (define-syntax-parse-rule (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
@@ -126,10 +127,15 @@
   [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
 
 (define-syntax-parser classifier/c
-  [(_ (~optional by-type/c #:defaults ([by-type/c #'any/c])))
-   #'(binary-function/c (encoder/c by-type/c)
-                        sequence?
-                        (sequenceof sequence?))])
+  [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
+                                      sequence?
+                                      (sequenceof sequence?))]
+  [(_) #'(binary-function/c (encoder/c any/c)
+                            sequence?
+                            (sequenceof sequence?))] ; backward compat - remove later
+  [_ #'(binary-function/c (encoder/c any/c)
+                          sequence?
+                          (sequenceof sequence?))])
 
 (define-syntax-parser map/c
   [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
@@ -146,10 +152,15 @@
                           sequence?)])
 
 (define-syntax-parser filter/c
-  [(_ (~optional of-type/c #:defaults ([of-type/c #'any/c])))
-   #'(binary-function/c (predicate/c of-type/c)
-                        (sequenceof of-type/c)
-                        (sequenceof of-type/c))])
+  [(_ of-type/c) #'(binary-function/c (predicate/c of-type/c)
+                                      (sequenceof of-type/c)
+                                      (sequenceof of-type/c))]
+  [(_) #'(binary-function/c predicate/c
+                            sequence?
+                            sequence?)] ; backward compat - remove later
+  [_ #'(binary-function/c predicate/c
+                          sequence?
+                          sequence?)])
 
 (define-syntax-parser reducer/c
   [(_ type/c target/c) #'(function/c (sequenceof type/c)
