@@ -30,19 +30,11 @@
  maybe/c
  binary-composition/c
  variadic-composition/c
- (contract-out [classifier/c (->* ()
-                                  (contract?)
-                                  contract?)]
-               [map/c (->* ()
-                           (contract? (maybe/c contract?))
-                           contract?)]
-               [filter/c (->* ()
-                              (contract?)
-                              contract?)]
-               [reducer/c (->* ()
-                               (contract? (maybe/c contract?))
-                               contract?)]
-               [functional/c (->* ()
+ classifier/c
+ map/c
+ filter/c
+ reducer/c
+ (contract-out [functional/c (->* ()
                                   (contract?)
                                   contract?)]
                [binary-constructor/c (->* (contract? contract?)
@@ -135,27 +127,38 @@
   [(_ type/c) #'(variadic-function/c type/c type/c)]
   [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
 
-(define (classifier/c [by-type/c any/c])
-  (binary-function/c (encoder/c by-type/c)
-                     sequence?
-                     (sequenceof sequence?)))
+(define-syntax-parser classifier/c
+  [(_ (~optional by-type/c #:defaults ([by-type/c #'any/c])))
+   #'(binary-function/c (encoder/c by-type/c)
+                        sequence?
+                        (sequenceof sequence?))])
 
-(define (map/c [source/c any/c]
-               [target/c #f])
-  (let ([target/c (or target/c source/c)])
-    (binary-function/c (function/c source/c target/c)
-                       (sequenceof source/c)
-                       (sequenceof target/c))))
+(define-syntax-parser map/c
+  [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
+                                              (sequenceof source/c)
+                                              (sequenceof target/c))]
+  [(_ source/c) #'(binary-function/c (self-map/c source/c)
+                                     (sequenceof source/c)
+                                     (sequenceof source/c))]
+  [(_) #'(binary-function/c function/c
+                            sequence?
+                            sequence?)] ; backward compat - remove later
+  [_ #'(binary-function/c function/c
+                          sequence?
+                          sequence?)])
 
-(define (filter/c [of-type/c any/c])
-  (binary-function/c (predicate/c of-type/c)
-                     (sequenceof of-type/c)
-                     (sequenceof of-type/c)))
+(define-syntax-parser filter/c
+  [(_ (~optional of-type/c #:defaults ([of-type/c #'any/c])))
+   #'(binary-function/c (predicate/c of-type/c)
+                        (sequenceof of-type/c)
+                        (sequenceof of-type/c))])
 
-(define (reducer/c [type/c any/c]
-                   [target/c #f])
-  (let ([target/c (or target/c type/c)])
-    (function/c (sequenceof type/c) target/c)))
+(define-syntax-parser reducer/c
+  [(_ type/c target/c) #'(function/c (sequenceof type/c)
+                                     target/c)]
+  [(_ type/c) #'(function/c (sequenceof type/c) type/c)]
+  [(_) #'(function/c sequence? any/c)] ; backward compat - remove later
+  [_ #'(function/c sequence? any/c)])
 
 (define (functional/c [procedure/c procedure?])
   (self-map/c procedure/c))
