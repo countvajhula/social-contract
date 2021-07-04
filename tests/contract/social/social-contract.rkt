@@ -577,7 +577,7 @@
     (test-case
         "bab"
       (define/contract (g a b)
-        (binary-constructor/c number? list? #:order 'bab)
+        (binary-constructor/c #:order 'bab number? list?)
         (list 5))
       (check-equal? (g (list 3) 5) (list 5))
       (check-exn exn:fail:contract? (thunk (g (list 5))))
