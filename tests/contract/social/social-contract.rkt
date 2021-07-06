@@ -603,7 +603,7 @@
     (test-case
         "bab"
       (define/contract (g . as)
-        (variadic-constructor/c number? list? #:order 'bab)
+        (variadic-constructor/c #:order 'bab number? list?)
         (list 5))
       (check-equal? (g (list 3) 1) (list 5))
       (check-equal? (g (list 3) 1 2 3) (list 5))

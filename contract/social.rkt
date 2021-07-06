@@ -36,9 +36,7 @@
  reducer/c
  functional/c
  binary-constructor/c
- (contract-out [variadic-constructor/c (->* (contract? contract?)
-                                            (#:order (one-of/c 'abb 'bab))
-                                            contract?)]))
+ variadic-constructor/c)
 
 (define-syntax-parser function/c
   [(_ source/c target/c) #'(-> source/c target/c)]
@@ -179,11 +177,13 @@
    #'(binary-function/c composite/c primitive/c composite/c)]
   [(_ primitive/c composite/c)
    ;; default to abb order
-   #'(binary-function/c primitive/c composite/c composite/c)])
+   #'(binary-constructor/c #:order 'abb primitive/c composite/c)])
 
-(define (variadic-constructor/c primitive/c
-                                composite/c
-                                #:order [order 'abb])
-  (match order
-    ['abb (variadic-function/c #:tail? #t primitive/c composite/c composite/c)]
-    ['bab (variadic-function/c composite/c primitive/c composite/c)]))
+(define-syntax-parser variadic-constructor/c
+  [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
+   #'(variadic-function/c primitive/c (tail composite/c) composite/c)]
+  [(_ (~seq #:order (~datum 'bab)) primitive/c composite/c)
+   #'(variadic-function/c composite/c primitive/c composite/c)]
+  [(_ primitive/c composite/c)
+   ;; default to abb order
+   #'(variadic-constructor/c #:order 'abb primitive/c composite/c)])
