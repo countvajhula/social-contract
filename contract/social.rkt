@@ -83,14 +83,14 @@
 
 (define-syntax-parser predicate/c
   [(_ on-type/c) #'(function/c on-type/c boolean?)]
-  [(_) #'(function/c any/c boolean?)]
-  [_ #'(function/c any/c boolean?)])
+  [(_) #'(predicate/c any/c)]
+  [_ #'(predicate/c any/c)])
 
 (define-syntax-parser binary-predicate/c
   [(_ a/c b/c) #'(binary-function/c a/c b/c boolean?)]
-  [(_ on-type/c) #'(binary-function/c on-type/c on-type/c boolean?)]
-  [(_) #'(binary-function/c any/c any/c boolean?)] ; backwards compat - remove later
-  [_ #'(binary-function/c any/c any/c boolean?)])
+  [(_ on-type/c) #'(binary-predicate/c on-type/c on-type/c)]
+  [(_) #'(binary-predicate/c any/c)] ; backwards compat - remove later
+  [_ #'(binary-predicate/c any/c)])
 
 (define-syntax-parser variadic-predicate/c
   [(_ a/c ((~datum tail) b/c))
@@ -98,8 +98,8 @@
   [(_ a/c b/c)
    #'(variadic-function/c a/c b/c boolean?)]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
-  [(_) #'(variadic-function/c any/c boolean?)] ; backwards compat - remove later
-  [_ #'(variadic-function/c any/c boolean?)])
+  [(_) #'(variadic-predicate/c any/c)] ; backwards compat - remove later
+  [_ #'(variadic-predicate/c any/c)])
 
 (define-syntax-parse-rule (encoder/c as-type/c)
   (function/c any/c as-type/c))
@@ -126,49 +126,35 @@
   [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
                                       sequence?
                                       (sequenceof sequence?))]
-  [(_) #'(binary-function/c (encoder/c any/c)
-                            sequence?
-                            (sequenceof sequence?))] ; backward compat - remove later
-  [_ #'(binary-function/c (encoder/c any/c)
-                          sequence?
-                          (sequenceof sequence?))])
+  [(_) #'(classifier/c any/c)] ; backward compat - remove later
+  [_ #'(classifier/c any/c)])
 
 (define-syntax-parser map/c
   [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
                                               (sequenceof source/c)
                                               (sequenceof target/c))]
-  [(_ source/c) #'(binary-function/c (self-map/c source/c)
-                                     (sequenceof source/c)
-                                     (sequenceof source/c))]
-  [(_) #'(binary-function/c function/c
-                            sequence?
-                            sequence?)] ; backward compat - remove later
-  [_ #'(binary-function/c function/c
-                          sequence?
-                          sequence?)])
+  [(_ source/c) #'(map/c source/c source/c)]
+  [(_) #'(map/c any/c any/c)] ; backward compat - remove later
+  [_ #'(map/c any/c any/c)])
 
 (define-syntax-parser filter/c
   [(_ of-type/c) #'(binary-function/c (predicate/c of-type/c)
                                       (sequenceof of-type/c)
                                       (sequenceof of-type/c))]
-  [(_) #'(binary-function/c predicate/c
-                            sequence?
-                            sequence?)] ; backward compat - remove later
-  [_ #'(binary-function/c predicate/c
-                          sequence?
-                          sequence?)])
+  [(_) #'(filter/c any/c)] ; backward compat - remove later
+  [_ #'(filter/c any/c)])
 
 (define-syntax-parser reducer/c
   [(_ type/c target/c) #'(function/c (sequenceof type/c)
                                      target/c)]
-  [(_ type/c) #'(function/c (sequenceof type/c) type/c)]
-  [(_) #'(function/c sequence? any/c)] ; backward compat - remove later
-  [_ #'(function/c sequence? any/c)])
+  [(_ type/c) #'(reducer/c type/c type/c)]
+  [(_) #'(reducer/c any/c)] ; backward compat - remove later
+  [_ #'(reducer/c any/c)])
 
 (define-syntax-parser functional/c
   [(_ procedure/c) #'(self-map/c procedure/c)]
-  [(_) #'(self-map/c procedure?)] ; backward compat - remove later
-  [_ #'(self-map/c procedure?)])
+  [(_) #'(functional/c procedure?)] ; backward compat - remove later
+  [_ #'(functional/c procedure?)])
 
 (define-syntax-parser binary-constructor/c
   [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
