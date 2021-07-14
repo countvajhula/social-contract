@@ -15,28 +15,29 @@
   (define-alias define-syntax-parse-rule define-simple-macro)]
  [else])
 
-(provide
- function/c
- thunk/c
- self-map/c
- binary-function/c
- variadic-function/c
- predicate/c
- binary-predicate/c
- variadic-predicate/c
- encoder/c
- decoder/c
- hash-function/c
- maybe/c
- binary-composition/c
- variadic-composition/c
- classifier/c
- map/c
- filter/c
- reducer/c
- functional/c
- binary-constructor/c
- variadic-constructor/c)
+(provide function/c
+         thunk/c
+         self-map/c
+         binary-function/c
+         variadic-function/c
+         binary-variadic-function/c
+         predicate/c
+         binary-predicate/c
+         variadic-predicate/c
+         encoder/c
+         decoder/c
+         hash-function/c
+         maybe/c
+         binary-composition/c
+         variadic-composition/c
+         binary-variadic-composition/c
+         classifier/c
+         map/c
+         filter/c
+         reducer/c
+         functional/c
+         binary-constructor/c
+         variadic-constructor/c)
 
 (define-syntax-parser function/c
   [(_ source/c target/c) #'(-> source/c target/c)]
@@ -79,7 +80,9 @@
    #:with ··· (quote-syntax ...)
    #'(-> any/c ··· any/c)])
 
-;; review variadic as the need presents itself
+;; backwards compat
+(define-syntax-parse-rule (binary-variadic-function/c a/c b/c target/c)
+  (variadic-function/c a/c b/c target/c))
 
 (define-syntax-parser predicate/c
   [(_ on-type/c) #'(function/c on-type/c boolean?)]
@@ -121,6 +124,10 @@
 (define-syntax-parser variadic-composition/c
   [(_ type/c) #'(variadic-function/c type/c type/c)]
   [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
+
+;; backwards compat
+(define-syntax-parse-rule (binary-variadic-composition/c type/c)
+  (variadic-composition/c type/c type/c))
 
 (define-syntax-parser classifier/c
   [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
