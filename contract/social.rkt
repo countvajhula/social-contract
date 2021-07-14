@@ -2,182 +2,180 @@
 
 (require racket/contract
          racket/match
+         syntax/parse/define
+         version-case
+         (only-in mischief/shorthand define-alias)
+         (for-syntax racket/base)
          (only-in data/collection
                   sequenceof
                   sequence?))
 
-(provide
- (contract-out [function/c (case->
-                            (-> contract?)
-                            (-> contract? contract? contract?))]
-               [self-map/c (self-map/c contract?)]
-               [thunk/c (->* () (contract?) contract?)]
-               [binary-function/c (->* ()
-                                       (contract?
-                                        (maybe/c contract?)
-                                        (maybe/c contract?))
-                                       contract?)]
-               [variadic-function/c (->* ()
-                                         (contract? (maybe/c contract?))
-                                         contract?)]
-               [binary-variadic-function/c (->* ()
-                                                (contract?
-                                                 (maybe/c contract?)
-                                                 (maybe/c contract?)
-                                                 #:tail? (maybe/c contract?))
-                                                contract?)]
-               [predicate/c (->* ()
-                                 (contract?)
-                                 contract?)]
-               [binary-predicate/c (->* ()
-                                        (contract?
-                                         (maybe/c contract?))
-                                        contract?)]
-               [variadic-predicate/c (->* ()
-                                          (contract?)
-                                          contract?)]
-               [binary-variadic-predicate/c (->* ()
-                                                 (contract?
-                                                  (maybe/c contract?)
-                                                  #:tail? (maybe/c contract?))
-                                                 contract?)]
-               [encoder/c (self-map/c contract?)]
-               [decoder/c (self-map/c contract?)]
-               [hash-function/c (thunk/c contract?)]
-               [maybe/c (->* (contract?)
-                             (contract?)
-                             contract?)]
-               [binary-composition/c (self-map/c contract?)]
-               [variadic-composition/c (self-map/c contract?)]
-               [binary-variadic-composition/c (self-map/c contract?)]
-               [classifier/c (->* ()
-                                  (contract?)
-                                  contract?)]
-               [map/c (->* ()
-                           (contract? (maybe/c contract?))
-                           contract?)]
-               [filter/c (->* ()
-                              (contract?)
-                              contract?)]
-               [reducer/c (->* ()
-                               (contract? (maybe/c contract?))
-                               contract?)]
-               [functional/c (->* ()
-                                  (contract?)
-                                  contract?)]
-               [binary-constructor/c (->* (contract? contract?)
-                                          (#:order (one-of/c 'abb 'bab))
-                                          contract?)]
-               [variadic-constructor/c (->* (contract? contract?)
-                                            (#:order (one-of/c 'abb 'bab))
-                                            contract?)]))
+(version-case
+ [(version< (version) "7.9.0.22")
+  (define-alias define-syntax-parse-rule define-simple-macro)]
+ [else])
 
-(define function/c
-  (case-lambda
-    [() (-> any/c any/c)]
-    [(source/c target/c)
-     (-> source/c target/c)]))
+(provide function/c
+         thunk/c
+         self-map/c
+         binary-function/c
+         variadic-function/c
+         binary-variadic-function/c
+         predicate/c
+         binary-predicate/c
+         variadic-predicate/c
+         encoder/c
+         decoder/c
+         hash-function/c
+         maybe/c
+         binary-composition/c
+         variadic-composition/c
+         binary-variadic-composition/c
+         classifier/c
+         map/c
+         filter/c
+         reducer/c
+         functional/c
+         binary-constructor/c
+         variadic-constructor/c)
 
-(define (self-map/c type/c)
+(define-syntax-parser function/c
+  [(_ source/c target/c) #'(-> source/c target/c)]
+  [(_) #'(-> any/c any/c)] ; backwards compat - remove later
+  [_:id #'(-> any/c any/c)])
+
+(define-syntax-parse-rule (self-map/c type/c)
   (function/c type/c type/c))
 
-(define (thunk/c [target/c any/c])
-  (-> target/c))
+(define-syntax-parser thunk/c
+  [(_ target/c) #'(-> target/c)]
+  [(_) #'(-> any/c)] ; backwards compat - remove later
+  [_:id #'(-> any/c)])
 
-(define (binary-function/c [a/c any/c]
-                           [b/c #f]
-                           [target/c #f])
-  (let ([b/c (or b/c a/c)]
-        [target/c (or target/c a/c)])
-    (-> a/c b/c target/c)))
+(define-syntax-parser binary-function/c
+  [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
+  [(_ type/c) #'(-> type/c type/c any/c)]
+  [(_ type/c target/c) #'(-> type/c type/c target/c)]
+  [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
+  [_:id #'(-> any/c any/c any/c)])
 
-(define (variadic-function/c [source/c any/c]
-                             [target/c #f])
-  (let ([target/c (or target/c source/c)])
-    (-> source/c ... target/c)))
+(define-syntax-parser variadic-function/c
+  [(_ a/c ((~datum tail) b/c) target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> a/c ··· b/c target/c)]
+  [(_ a/c b/c target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> a/c b/c ··· target/c)]
+  [(_ source/c target/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> source/c ··· target/c)]
+  [(_ source/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> source/c ··· any/c)]
+  [(_)
+   #:with ··· (quote-syntax ...) ; backwards compat - remove later
+   #'(-> any/c ··· any/c)]
+  [_:id
+   #:with ··· (quote-syntax ...)
+   #'(-> any/c ··· any/c)])
 
-(define (binary-variadic-function/c [a/c any/c]
-                                    [b/c #f]
-                                    [target/c #f]
-                                    #:tail? [tail? #f])
-  (let ([b/c (or b/c a/c)]
-        [target/c (or target/c a/c)])
-    (if tail?
-        (-> a/c ... b/c target/c)
-        (-> a/c b/c ... target/c))))
+;; backwards compat
+(define-syntax-parse-rule (binary-variadic-function/c a/c b/c target/c)
+  (variadic-function/c a/c b/c target/c))
 
-(define (predicate/c [on-type/c any/c])
-  (function/c on-type/c boolean?))
+(define-syntax-parser predicate/c
+  [(_ on-type/c) #'(function/c on-type/c boolean?)]
+  [(_) #'(predicate/c any/c)] ; backwards compat - remove later
+  [_:id #'(predicate/c any/c)])
 
-(define (binary-predicate/c [a/c any/c]
-                            [b/c #f])
-  (binary-function/c a/c b/c boolean?))
+(define-syntax-parser binary-predicate/c
+  [(_ a/c b/c) #'(binary-function/c a/c b/c boolean?)]
+  [(_ on-type/c) #'(binary-predicate/c on-type/c on-type/c)]
+  [(_) #'(binary-predicate/c any/c)] ; backwards compat - remove later
+  [_:id #'(binary-predicate/c any/c)])
 
-(define (variadic-predicate/c [source/c any/c])
-  (variadic-function/c source/c boolean?))
+(define-syntax-parser variadic-predicate/c
+  [(_ a/c ((~datum tail) b/c))
+   #'(variadic-function/c a/c (tail b/c) boolean?)]
+  [(_ a/c b/c)
+   #'(variadic-function/c a/c b/c boolean?)]
+  [(_ source/c) #'(variadic-function/c source/c boolean?)]
+  [(_) #'(variadic-predicate/c any/c)] ; backwards compat - remove later
+  [_:id #'(variadic-predicate/c any/c)])
 
-(define (binary-variadic-predicate/c [a/c any/c]
-                                     [b/c #f]
-                                     #:tail? [tail? #f])
-  (binary-variadic-function/c #:tail? tail?
-                              a/c b/c boolean?))
-
-(define (encoder/c as-type/c)
+(define-syntax-parse-rule (encoder/c as-type/c)
   (function/c any/c as-type/c))
 
-(define (decoder/c from-type/c)
+(define-syntax-parse-rule (decoder/c from-type/c)
   (function/c from-type/c any/c))
 
-(define (hash-function/c)
-  (encoder/c fixnum?))
+(define-syntax-parser hash-function/c
+  [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
+  [_:id #'(encoder/c fixnum?)])
 
-(define (maybe/c type/c [default/c #f])
-  (or/c type/c default/c))
+(define-syntax-parser maybe/c
+  [(_ type/c default/c) #'(or/c type/c default/c)]
+  [(_ type/c) #'(or/c type/c #f)])
 
-(define (binary-composition/c type/c)
+(define-syntax-parse-rule (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
 
-(define (variadic-composition/c type/c)
-  (variadic-function/c type/c type/c))
+(define-syntax-parser variadic-composition/c
+  [(_ type/c) #'(variadic-function/c type/c type/c)]
+  [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
 
-(define (binary-variadic-composition/c type/c)
-  (binary-variadic-function/c type/c))
+;; backwards compat
+(define-syntax-parse-rule (binary-variadic-composition/c type/c)
+  (variadic-composition/c type/c type/c))
 
-(define (classifier/c [by-type/c any/c])
-  (binary-function/c (encoder/c by-type/c)
-                     sequence?
-                     (sequenceof sequence?)))
+(define-syntax-parser classifier/c
+  [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
+                                      sequence?
+                                      (sequenceof sequence?))]
+  [(_) #'(classifier/c any/c)] ; backward compat - remove later
+  [_:id #'(classifier/c any/c)])
 
-(define (map/c [source/c any/c]
-               [target/c #f])
-  (let ([target/c (or target/c source/c)])
-    (binary-function/c (function/c source/c target/c)
-                       (sequenceof source/c)
-                       (sequenceof target/c))))
+(define-syntax-parser map/c
+  [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
+                                              (sequenceof source/c)
+                                              (sequenceof target/c))]
+  [(_ source/c) #'(map/c source/c source/c)]
+  [(_) #'(map/c any/c any/c)] ; backward compat - remove later
+  [_:id #'(map/c any/c any/c)])
 
-(define (filter/c [of-type/c any/c])
-  (binary-function/c (predicate/c of-type/c)
-                     (sequenceof of-type/c)
-                     (sequenceof of-type/c)))
+(define-syntax-parser filter/c
+  [(_ of-type/c) #'(binary-function/c (predicate/c of-type/c)
+                                      (sequenceof of-type/c)
+                                      (sequenceof of-type/c))]
+  [(_) #'(filter/c any/c)] ; backward compat - remove later
+  [_:id #'(filter/c any/c)])
 
-(define (reducer/c [type/c any/c]
-                   [target/c #f])
-  (let ([target/c (or target/c type/c)])
-    (function/c (sequenceof type/c) target/c)))
+(define-syntax-parser reducer/c
+  [(_ type/c target/c) #'(function/c (sequenceof type/c)
+                                     target/c)]
+  [(_ type/c) #'(reducer/c type/c type/c)]
+  [(_) #'(reducer/c any/c)] ; backward compat - remove later
+  [_:id #'(reducer/c any/c)])
 
-(define (functional/c [procedure/c procedure?])
-  (self-map/c procedure/c))
+(define-syntax-parser functional/c
+  [(_ procedure/c) #'(self-map/c procedure/c)]
+  [(_) #'(functional/c procedure?)] ; backward compat - remove later
+  [_:id #'(functional/c procedure?)])
 
-(define (binary-constructor/c primitive/c
-                              composite/c
-                              #:order [order 'abb])
-  (match order
-    ['abb (binary-function/c primitive/c composite/c composite/c)]
-    ['bab (binary-function/c composite/c primitive/c composite/c)]))
+(define-syntax-parser binary-constructor/c
+  [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
+   #'(binary-function/c primitive/c composite/c composite/c)]
+  [(_ (~seq #:order (~datum 'bab)) primitive/c composite/c)
+   #'(binary-function/c composite/c primitive/c composite/c)]
+  [(_ primitive/c composite/c)
+   ;; default to abb order
+   #'(binary-constructor/c #:order 'abb primitive/c composite/c)])
 
-(define (variadic-constructor/c primitive/c
-                                composite/c
-                                #:order [order 'abb])
-  (match order
-    ['abb (binary-variadic-function/c #:tail? #t primitive/c composite/c composite/c)]
-    ['bab (binary-variadic-function/c composite/c primitive/c composite/c)]))
+(define-syntax-parser variadic-constructor/c
+  [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
+   #'(variadic-function/c primitive/c (tail composite/c) composite/c)]
+  [(_ (~seq #:order (~datum 'bab)) primitive/c composite/c)
+   #'(variadic-function/c composite/c primitive/c composite/c)]
+  [(_ primitive/c composite/c)
+   ;; default to abb order
+   #'(variadic-constructor/c #:order 'abb primitive/c composite/c)])

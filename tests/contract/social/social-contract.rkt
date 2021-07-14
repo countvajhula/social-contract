@@ -37,27 +37,49 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g lst)
+        function/c
+        0)
+      (check-equal? (g '(h e l l o)) 0)
+      (check-equal? (g "hello") 0)
+      (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g lst)
         (function/c)
         0)
       (check-equal? (g '(h e l l o)) 0)
       (check-equal? (g "hello") 0)
       (check-exn exn:fail:contract? (thunk (g '(h e l l o) '(h e l l o))))
       (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "any"
+      (define/contract (g lst)
+        (function/c list? any)
+        (values 0 1))
+      (check-equal? (values->list (g '(h e l l o)))
+                    (list 0 1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
+    (test-case
+        "values"
+      (define/contract (g lst)
+        (function/c list? (values positive? negative?))
+        (values 1 -1))
+      (check-equal? (values->list (g '(h e l l o)))
+                    (list 1 -1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
     ;; (test-case
-    ;;     "any with single value"
-    ;;   (define/contract (list-to-any lst)
-    ;;     (function/c list? any)
-    ;;     0)
-    ;;   (check-equal? (list-to-any '(h e l l o)) 0)
-    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
-    ;; (test-case
-    ;;     "any with multiple values"
-    ;;   (define/contract (list-to-any lst)
-    ;;     (function/c list? any)
-    ;;     (values 0 1))
-    ;;   (check-equal? (values->list (list-to-any '(h e l l o)))
-    ;;                 (list 0 1))
-    ;;   (check-exn exn:fail:contract? (thunk (list-to-any "hello"))))
+    ;;     "case->"
+    ;;   (define/contract (g lst)
+    ;;     (case->
+    ;;      (function/c string? number?)
+    ;;      (function/c list?))
+    ;;     (case-lambda
+    ;;       [() (list 1 2)]
+    ;;       [(arg) 0]))
+    ;;   (check-equal? (g "hello") 0)
+    ;;   (check-equal? (g) (list 1 2))
+    ;;   (check-exn exn:fail:contract? (thunk (g 1))))
     )
 
    (test-suite
@@ -94,7 +116,35 @@
       (define/contract (list-thunk)
         (thunk/c list?)
         0)
-      (check-exn exn:fail:contract? (thunk (list-thunk)))))
+      (check-exn exn:fail:contract? (thunk (list-thunk))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g)
+        thunk/c
+        0)
+      (check-equal? (g) 0))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g)
+        (thunk/c)
+        0)
+      (check-equal? (g) 0))
+    (test-case
+        "any"
+      (define/contract (g)
+        (thunk/c any)
+        (values 0 1))
+      (check-equal? (values->list (g))
+                    (list 0 1))
+      (check-exn exn:fail:contract? (thunk (g "hello"))))
+    (test-case
+        "values"
+      (define/contract (g)
+        (thunk/c (values positive? negative?))
+        (values 1 -1))
+      (check-equal? (values->list (g))
+                    (list 1 -1))
+      (check-exn exn:fail:contract? (thunk (g "hello")))))
 
    (test-suite
     "binary-function/c"
@@ -106,6 +156,20 @@
       (check-equal? (g 2 -3) -6)
       (check-exn exn:fail:contract? (thunk (g -2 3))))
     (test-case
+        "input contracts"
+      (define/contract (g a b)
+        (binary-function/c positive?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "input and target contracts"
+      (define/contract (g a b)
+        (binary-function/c positive? string?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
         "Return value"
       (define/contract (g a b)
         (binary-function/c positive? negative? negative?)
@@ -114,23 +178,15 @@
     (test-case
         "All default contracts"
       (define/contract (g a b)
-        (binary-function/c)
+        binary-function/c
         (* a b))
       (check-equal? (g 2 -3) -6))
     (test-case
-        "Default to first input contract"
+        "All default contracts - backwards compat"
       (define/contract (g a b)
-        (binary-function/c positive?)
+        (binary-function/c)
         (* a b))
-      (check-equal? (g 2 3) 6)
-      (check-exn exn:fail:contract? (thunk (g -2 3))))
-    (test-case
-        "Default output to first input contracts"
-      (define/contract (g a b)
-        (binary-function/c negative? positive?)
-        (* a b))
-      (check-equal? (g -3 2) -6)
-      (check-exn exn:fail:contract? (thunk (g 3 -2)))))
+      (check-equal? (g 2 -3) -6)))
 
    (test-suite
     "variadic-function/c"
@@ -150,53 +206,39 @@
     (test-case
         "All default contracts"
       (define/contract (g . as)
+        variadic-function/c
+        5)
+      (check-equal? (g -1 -2 -5) 5)
+      (check-equal? (g "hi" -2 -5) 5))
+    (test-case
+        "All default contracts - backwards compat"
+      (define/contract (g . as)
         (variadic-function/c)
         5)
       (check-equal? (g -1 -2 -5) 5)
       (check-equal? (g "hi" -2 -5) 5))
     (test-case
-        "Default output to input contract"
+        "Default output to any/c"
       (define/contract (g . as)
         (variadic-function/c negative?)
-        -5)
-      (check-equal? (g -1 -2 -5) -5)))
+        "hello")
+      (check-equal? (g -1 -2 -5) "hello")
+      (check-exn exn:fail:contract? (thunk (g -1 -2 5)))))
 
    (test-suite
     "binary-variadic-function/c"
     (test-case
         "Basic"
       (define/contract (g . as)
-        (binary-variadic-function/c number? list? number?)
+        (variadic-function/c number? list? number?)
         5)
       (check-equal? (g 3 (list 1 2) null) 5)
       (check-equal? (g 3) 5)
       (check-exn exn:fail:contract? (thunk (g (list 1 2) null))))
     (test-case
-        "Defaults with no parameters"
-      (define/contract (g . as)
-        (binary-variadic-function/c)
-        5)
-      (check-equal? (g 2 3) 5)
-      (check-equal? (g 1) 5)
-      (check-exn exn:fail:contract? (thunk (g))))
-    (test-case
-        "Default variadic contract"
-      (define/contract (g . as)
-        (binary-variadic-function/c number?)
-        5)
-      (check-equal? (g 4 5 6) 5)
-      (check-exn exn:fail:contract? (thunk (g (list 1 2)))))
-    (test-case
-        "Default output contract"
-      (define/contract (g . as)
-        (binary-variadic-function/c number? list?)
-        5)
-      (check-equal? (g 3 (list 1 2) null) 5)
-      (check-exn exn:fail:contract? (thunk (g 3 5))))
-    (test-case
         "Variadic head"
       (define/contract (g . as)
-        (binary-variadic-function/c number? list? #:tail? #t)
+        (variadic-function/c number? (tail list?) number?)
         5)
       (check-equal? (g 3 4 5 (list 1 2)) 5)
       (check-equal? (g (list 1 2)) 5)
@@ -213,6 +255,14 @@
       (check-exn exn:fail:contract? (thunk (g null))))
     (test-case
         "Defaults with no parameters"
+      (define/contract (g . as)
+        predicate/c
+        #t)
+      (check-true (g 5))
+      (check-true (g null))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
       (define/contract (g . as)
         (predicate/c)
         #t)
@@ -240,6 +290,13 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g . as)
+        binary-predicate/c
+        #t)
+      (check-true (g 5 "hi"))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g . as)
         (binary-predicate/c)
         #t)
       (check-true (g 5 "hi"))
@@ -259,6 +316,14 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g . as)
+        variadic-predicate/c
+        #t)
+      (check-true (g 5))
+      (check-true (g "hi"))
+      (check-true (g)))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g . as)
         (variadic-predicate/c)
         #t)
       (check-true (g 5))
@@ -270,31 +335,20 @@
     (test-case
         "Basic"
       (define/contract (g . as)
-        (binary-variadic-predicate/c number? string?)
+        (variadic-predicate/c number? string?)
         #t)
       (check-true (g 2 "hi" "bye"))
       (check-true (g 2))
       (check-exn exn:fail:contract? (thunk (g "hi")))
       (check-exn exn:fail:contract? (thunk (g))))
     (test-case
-        "Defaults with no parameters"
+        "Variadic head"
       (define/contract (g . as)
-        (binary-variadic-predicate/c)
+        (variadic-predicate/c number? (tail list?))
         #t)
-      (check-true (g 2 3 5))
-      (check-true (g 2 "hi" 5))
-      (check-true (g 2))
-      (check-exn exn:fail:contract? (thunk (g))))
-    (test-case
-        "Default with one parameter"
-      (define/contract (g . as)
-        (binary-variadic-predicate/c number?)
-        #t)
-      ;;... and tail
-      (check-true (g 5))
-      (check-true (g 5 6 7))
-      (check-exn exn:fail:contract? (thunk (g 5 "hi")))
-      (check-exn exn:fail:contract? (thunk (g)))))
+      (check-true (g 3 4 5 (list 1 2)))
+      (check-true (g (list 1 2)))
+      (check-exn exn:fail:contract? (thunk (g 5)))))
 
    (test-suite
     "encoder/c"
@@ -321,6 +375,14 @@
     "hash-function/c"
     (test-case
         "Basic"
+      (define/contract (g v)
+        hash-function/c
+        5)
+      (check-equal? (g "hi") 5)
+      (check-equal? (g null) 5)
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Basic - backwards compat"
       (define/contract (g v)
         (hash-function/c)
         5)
@@ -364,14 +426,11 @@
       (check-equal? (g 1) 5)
       (check-equal? (g) 5)
       (check-exn exn:fail:contract? (thunk (g "1")))
-      (check-exn exn:fail:contract? (thunk (g 1 "2")))))
-
-   (test-suite
-    "binary-variadic-composition/c"
+      (check-exn exn:fail:contract? (thunk (g 1 "2"))))
     (test-case
-        "Basic"
+        "Binary"
       (define/contract (g . as)
-        (binary-variadic-composition/c number?)
+        (variadic-composition/c number? number?)
         5)
       (check-equal? (g 1 2) 5)
       (check-equal? (g 1 2 3) 5)
@@ -545,7 +604,7 @@
     (test-case
         "bab"
       (define/contract (g a b)
-        (binary-constructor/c number? list? #:order 'bab)
+        (binary-constructor/c #:order 'bab number? list?)
         (list 5))
       (check-equal? (g (list 3) 5) (list 5))
       (check-exn exn:fail:contract? (thunk (g (list 5))))
@@ -571,7 +630,7 @@
     (test-case
         "bab"
       (define/contract (g . as)
-        (variadic-constructor/c number? list? #:order 'bab)
+        (variadic-constructor/c #:order 'bab number? list?)
         (list 5))
       (check-equal? (g (list 3) 1) (list 5))
       (check-equal? (g (list 3) 1 2 3) (list 5))
