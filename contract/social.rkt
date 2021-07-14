@@ -42,7 +42,7 @@
 (define-syntax-parser function/c
   [(_ source/c target/c) #'(-> source/c target/c)]
   [(_) #'(-> any/c any/c)] ; backwards compat - remove later
-  [_ #'(-> any/c any/c)])
+  [_:id #'(-> any/c any/c)])
 
 (define-syntax-parse-rule (self-map/c type/c)
   (function/c type/c type/c))
@@ -50,14 +50,14 @@
 (define-syntax-parser thunk/c
   [(_ target/c) #'(-> target/c)]
   [(_) #'(-> any/c)] ; backwards compat - remove later
-  [_ #'(-> any/c)])
+  [_:id #'(-> any/c)])
 
 (define-syntax-parser binary-function/c
   [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
   [(_ type/c) #'(-> type/c type/c any/c)]
   [(_ type/c target/c) #'(-> type/c type/c target/c)]
   [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
-  [_ #'(-> any/c any/c any/c)])
+  [_:id #'(-> any/c any/c any/c)])
 
 (define-syntax-parser variadic-function/c
   [(_ a/c ((~datum tail) b/c) target/c)
@@ -72,7 +72,7 @@
   [(_)
    #:with ··· (quote-syntax ...) ; backwards compat - remove later
    #'(-> any/c ··· any/c)]
-  [_
+  [_:id
    #:with ··· (quote-syntax ...)
    #'(-> any/c ··· any/c)])
 
@@ -82,14 +82,14 @@
 
 (define-syntax-parser predicate/c
   [(_ on-type/c) #'(function/c on-type/c boolean?)]
-  [(_) #'(predicate/c any/c)]
-  [_ #'(predicate/c any/c)])
+  [(_) #'(predicate/c any/c)] ; backwards compat - remove later
+  [_:id #'(predicate/c any/c)])
 
 (define-syntax-parser binary-predicate/c
   [(_ a/c b/c) #'(binary-function/c a/c b/c boolean?)]
   [(_ on-type/c) #'(binary-predicate/c on-type/c on-type/c)]
   [(_) #'(binary-predicate/c any/c)] ; backwards compat - remove later
-  [_ #'(binary-predicate/c any/c)])
+  [_:id #'(binary-predicate/c any/c)])
 
 (define-syntax-parser variadic-predicate/c
   [(_ a/c ((~datum tail) b/c))
@@ -98,7 +98,7 @@
    #'(variadic-function/c a/c b/c boolean?)]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
   [(_) #'(variadic-predicate/c any/c)] ; backwards compat - remove later
-  [_ #'(variadic-predicate/c any/c)])
+  [_:id #'(variadic-predicate/c any/c)])
 
 (define-syntax-parse-rule (encoder/c as-type/c)
   (function/c any/c as-type/c))
@@ -108,7 +108,7 @@
 
 (define-syntax-parser hash-function/c
   [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
-  [_ #'(encoder/c fixnum?)])
+  [_:id #'(encoder/c fixnum?)])
 
 (define-syntax-parser maybe/c
   [(_ type/c default/c) #'(or/c type/c default/c)]
@@ -130,7 +130,7 @@
                                       sequence?
                                       (sequenceof sequence?))]
   [(_) #'(classifier/c any/c)] ; backward compat - remove later
-  [_ #'(classifier/c any/c)])
+  [_:id #'(classifier/c any/c)])
 
 (define-syntax-parser map/c
   [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
@@ -138,26 +138,26 @@
                                               (sequenceof target/c))]
   [(_ source/c) #'(map/c source/c source/c)]
   [(_) #'(map/c any/c any/c)] ; backward compat - remove later
-  [_ #'(map/c any/c any/c)])
+  [_:id #'(map/c any/c any/c)])
 
 (define-syntax-parser filter/c
   [(_ of-type/c) #'(binary-function/c (predicate/c of-type/c)
                                       (sequenceof of-type/c)
                                       (sequenceof of-type/c))]
   [(_) #'(filter/c any/c)] ; backward compat - remove later
-  [_ #'(filter/c any/c)])
+  [_:id #'(filter/c any/c)])
 
 (define-syntax-parser reducer/c
   [(_ type/c target/c) #'(function/c (sequenceof type/c)
                                      target/c)]
   [(_ type/c) #'(reducer/c type/c type/c)]
   [(_) #'(reducer/c any/c)] ; backward compat - remove later
-  [_ #'(reducer/c any/c)])
+  [_:id #'(reducer/c any/c)])
 
 (define-syntax-parser functional/c
   [(_ procedure/c) #'(self-map/c procedure/c)]
   [(_) #'(functional/c procedure?)] ; backward compat - remove later
-  [_ #'(functional/c procedure?)])
+  [_:id #'(functional/c procedure?)])
 
 (define-syntax-parser binary-constructor/c
   [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
