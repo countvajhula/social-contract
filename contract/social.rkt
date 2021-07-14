@@ -69,6 +69,9 @@
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(-> source/c ··· target/c)]
+  [(_ source/c)
+   #:with ··· (quote-syntax ...)
+   #'(-> source/c ··· any/c)]
   [(_)
    #:with ··· (quote-syntax ...) ; backwards compat - remove later
    #'(-> any/c ··· any/c)]

@@ -218,11 +218,12 @@
       (check-equal? (g -1 -2 -5) 5)
       (check-equal? (g "hi" -2 -5) 5))
     (test-case
-        "Default output to input contract"
+        "Default output to any/c"
       (define/contract (g . as)
         (variadic-function/c negative?)
-        -5)
-      (check-equal? (g -1 -2 -5) -5)))
+        "hello")
+      (check-equal? (g -1 -2 -5) "hello")
+      (check-exn exn:fail:contract? (thunk (g -1 -2 5)))))
 
    (test-suite
     "binary-variadic-function/c"
