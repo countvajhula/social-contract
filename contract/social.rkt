@@ -54,6 +54,8 @@
 
 (define-syntax-parser binary-function/c
   [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
+  [(_ type/c) #'(-> type/c type/c any/c)]
+  [(_ type/c target/c) #'(-> type/c type/c target/c)]
   [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
   [_ #'(-> any/c any/c any/c)])
 

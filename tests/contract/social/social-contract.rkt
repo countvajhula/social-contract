@@ -156,6 +156,20 @@
       (check-equal? (g 2 -3) -6)
       (check-exn exn:fail:contract? (thunk (g -2 3))))
     (test-case
+        "input contracts"
+      (define/contract (g a b)
+        (binary-function/c positive?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "input and target contracts"
+      (define/contract (g a b)
+        (binary-function/c positive? string?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
         "Return value"
       (define/contract (g a b)
         (binary-function/c positive? negative? negative?)
