@@ -57,12 +57,6 @@
   [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
   [_ #'(-> any/c any/c any/c)])
 
-;; TODO: support any number of contracts preceding
-;; the variadic argument.
-;; maybe DSL-ify it so that we can indicate the arity
-;; of distinct contracts beforehand, so that they can
-;; default to the right _number_ of them, and can be
-;; left unspecified
 (define-syntax-parser variadic-function/c
   [(_ a/c ((~datum tail) b/c) target/c)
    #:with ··· (quote-syntax ...)

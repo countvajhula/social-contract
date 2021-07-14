@@ -118,6 +118,18 @@
         0)
       (check-exn exn:fail:contract? (thunk (list-thunk))))
     (test-case
+        "Defaults with no parameters"
+      (define/contract (g)
+        thunk/c
+        0)
+      (check-equal? (g) 0))
+    (test-case
+        "Defaults with no parameters - backwards compat"
+      (define/contract (g)
+        (thunk/c)
+        0)
+      (check-equal? (g) 0))
+    (test-case
         "any"
       (define/contract (g)
         (thunk/c any)
@@ -289,7 +301,7 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g . as)
-        (variadic-predicate/c)
+        variadic-predicate/c
         #t)
       (check-true (g 5))
       (check-true (g "hi"))
