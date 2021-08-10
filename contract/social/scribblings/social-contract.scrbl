@@ -84,6 +84,10 @@ Collectively-defined contracts for commonly encountered types.
   ]
 }
 
+@defidform[functional/c]{
+ A contract to recognize a function that accepts a function and returns another function. Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
+}
+
 @deftogether[(
 @defidform[binary-function/c]
 @defform[#:link-target? #f
@@ -97,7 +101,7 @@ Collectively-defined contracts for commonly encountered types.
 
   @racket[binary-function/c] in general is equivalent to @racket[(-> a/c b/c target/c)].
 
-  Where applicable, prefer a more specific contract like @racket[binary-predicate/c] or @racket[binary-composition/c].
+  Where applicable, prefer a more specific contract like @racket[binary-predicate/c], @racket[binary-composition/c], or @racket[binary-constructor/c].
 
 @examples[
     #:eval eval-for-docs
@@ -124,7 +128,7 @@ Collectively-defined contracts for commonly encountered types.
 
  @racket[variadic-function/c] in general is equivalent to @racket[(-> source/c ... target/c)].
 
-  Where applicable, prefer a more specific contract like @racket[variadic-predicate/c] or @racket[variadic-composition/c].
+  Where applicable, prefer a more specific contract like @racket[variadic-predicate/c], @racket[variadic-composition/c], or @racket[variadic-constructor/c].
 
 @examples[
     #:eval eval-for-docs
@@ -160,7 +164,7 @@ Collectively-defined contracts for commonly encountered types.
 @defform[(decoder/c from-type/c)]
 @defidform[hash-function/c]
 )]{
-  @racket[encoder/c] recognizes functions that map inputs of any type (i.e. @racket[any/c]) to a specific type, such as @racket[integer?]. @racket[decoder/c] recognizes functions that map inputs of a specific type, such as @racket[integer?] to an arbitrary output type (i.e. @racket[any/c]). @racket[hash-function/c] recognizes encoders that specifically map to the type @racket[fixnum?].
+  @racket[encoder/c] recognizes functions that map inputs of any type (i.e. @racket[any/c]) to a specific type, such as @racket[integer?]. @racket[decoder/c] recognizes functions that map inputs of a specific type, such as @racket[integer?], to an arbitrary output type (i.e. @racket[any/c]). @racket[hash-function/c] recognizes encoders that specifically map to the type @racket[fixnum?].
 
 @racket[encoder/c] is equivalent to @racket[(-> any/c as-type/c)], @racket[decoder/c] is equivalent to @racket[(-> from-type/c any/c)], and @racket[hash-function/c] is equivalent to @racket[(-> any/c fixnum?)].
 }
@@ -177,10 +181,6 @@ Collectively-defined contracts for commonly encountered types.
     (define/contract v (maybe/c number?) #f)
     (eval:error (define/contract v (maybe/c number?) "5"))
   ]
-}
-
-@defidform[functional/c]{
- A contract to recognize a function that accepts a function and returns another function. Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
 }
 
 @deftogether[(
@@ -201,7 +201,7 @@ Collectively-defined contracts for commonly encountered types.
 )]{
   Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type including the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs.
 
-  @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)] (depending on the indicated @racket[order]), and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
+  @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
 
 @examples[
     #:eval eval-for-docs
@@ -217,7 +217,9 @@ Collectively-defined contracts for commonly encountered types.
 @defidform[classifier/c]
 @defform[#:link-target? #f (classifier/c by-type/c)]
 )]{
- A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function. Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequenceof sequence?))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
+ A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function.
+
+Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequenceof sequence?))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
 
 @examples[
     #:eval eval-for-docs
@@ -236,7 +238,7 @@ Collectively-defined contracts for commonly encountered types.
 )]{
  A contract to recognize a function that maps a function over a sequence of values. The input sequence is expected to contain values of type @racket[source/c] and the mapping function is expected to be of type @racket[(-> source/c target/c)], so that the result of the contractually bound function is expected to be of type @racket[(sequenceof target/c)]. @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c] if neither is specified, and the same if only one is specified.
 
- Equivalent to @racket[(-> (-> source/c target/c) (sequenceof source/c) (sequenceof target/c))].
+ Equivalent to @racket[(binary-function/c (function/c source/c target/c) (sequenceof source/c) (sequenceof target/c))] or @racket[(-> (-> source/c target/c) (sequenceof source/c) (sequenceof target/c))].
 
 @examples[
     #:eval eval-for-docs
@@ -254,7 +256,7 @@ Collectively-defined contracts for commonly encountered types.
 )]{
  A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. @racket[type/c] is assumed to be @racket[any/c] if left unspecified.
 
- Equivalent to @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
+ Equivalent to @racket[(binary-function/c (predicate/c type/c) (sequenceof type/c) (sequenceof type/c))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
 
 @examples[
     #:eval eval-for-docs
@@ -275,7 +277,7 @@ Collectively-defined contracts for commonly encountered types.
 
  If @racket[target/c] is not specified, it is assumed to be @racket[type/c].
 
- @racket[reducer/c] is equivalent to @racket[(-> (sequenceof type/c) target/c)].
+ @racket[reducer/c] is equivalent to @racket[(function/c (sequenceof type/c) target/c)] or @racket[(-> (sequenceof type/c) target/c)].
 
 @examples[
     #:eval eval-for-docs
