@@ -179,10 +179,7 @@ Collectively-defined contracts for commonly encountered types.
   ]
 }
 
-@deftogether[(
-@defidform[functional/c]
-@defform[#:link-target? #f (functional/c procedure/c)]
-)]{
+@defidform[functional/c]{
  A contract to recognize a function that accepts a function and returns another function. Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
 }
 
@@ -196,7 +193,6 @@ Collectively-defined contracts for commonly encountered types.
   @racket[binary-composition/c] is equivalent to @racket[(-> type/c type/c type/c)], and @racket[variadic-composition/c] is equivalent to @racket[(-> type/c ... type/c)].
 }
 
-@;{HERE - also, need examples? maybe just for the novel contracts, e.g. binary-function and variadic-function, maybe/c}
 @deftogether[(
 @defform[(binary-constructor/c primitive/c composite/c)]
 @defform[#:link-target? #f (binary-constructor/c #:order order primitive/c composite/c)]

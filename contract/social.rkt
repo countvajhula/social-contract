@@ -144,9 +144,9 @@
   [_:id #'(map/c any/c any/c)])
 
 (define-syntax-parser filter/c
-  [(_ of-type/c) #'(binary-function/c (predicate/c of-type/c)
-                                      (sequenceof of-type/c)
-                                      (sequenceof of-type/c))]
+  [(_ type/c) #'(binary-function/c (predicate/c type/c)
+                                   (sequenceof type/c)
+                                   (sequenceof type/c))]
   [(_) #'(filter/c any/c)] ; backward compat - remove later
   [_:id #'(filter/c any/c)])
 
@@ -158,9 +158,8 @@
   [_:id #'(reducer/c any/c)])
 
 (define-syntax-parser functional/c
-  [(_ procedure/c) #'(self-map/c procedure/c)]
-  [(_) #'(functional/c procedure?)] ; backward compat - remove later
-  [_:id #'(functional/c procedure?)])
+  [(_) #'(self-map/c procedure?)] ; backward compat - remove later
+  [_:id #'(self-map/c procedure?)])
 
 (define-syntax-parser binary-constructor/c
   [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)

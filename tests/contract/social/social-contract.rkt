@@ -567,14 +567,14 @@
     (test-case
         "Basic"
       (define/contract (g h)
-        (functional/c procedure?)
+        functional/c
         add1)
       (check-equal? (g sqrt) add1)
       (check-exn exn:fail:contract? (thunk (g 5))))
     (test-case
         "Return value"
       (define/contract (g h)
-        (functional/c procedure?)
+        functional/c
         5)
       (check-exn exn:fail:contract? (thunk (g add1))))
     (test-case
