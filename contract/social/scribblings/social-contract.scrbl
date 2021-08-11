@@ -325,8 +325,7 @@ To use it, simply invoke the @racket[translate] function with a string or quoted
          any/c]{
  "Reverse compile" the contract @racket[ctc] as a social contract specification. @racket[ctc] is expected to be a quoted list representing a contract (e.g. @racket['(-> number? string?)]) or a string (e.g. @racket["(-> number? string?)"]) or a literal such as a symbol (e.g. @racket['predicate/c]).
 
-@examples[
-    #:eval eval-for-docs
+@racketblock[
     (translate '(-> integer? integer? integer?))
     (translate '(-> any/c number?))
     (translate '(-> string? any/c))
