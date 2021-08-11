@@ -481,8 +481,206 @@ ARROW
     [ctcs <- (many*/p contract/p)]
     (pure (list* name ctcs))))
 
+(define simplify-self-map/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (eq? a b)
+        (pure (list 'self-map/c a))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to self-map"))))))
+
+(define simplify-encoder/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    (identifier/p 'any/c)
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'encoder/c b))))
+
+(define simplify-decoder/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    (identifier/p 'any/c)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'decoder/c a))))
+
+(define simplify-hash-function/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    (identifier/p 'any/c)
+    (identifier/p 'fixnum?)
+    (token/p 'CLOSE-PAREN)
+    (pure 'hash-function/c)))
+
+(define simplify-predicate/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    (identifier/p 'boolean?)
+    (token/p 'CLOSE-PAREN)
+    (if (eq? a 'any/c)
+        (pure 'predicate/c)
+        (pure (list 'predicate/c a)))))
+
+(define simplify-functional/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    (identifier/p 'procedure?)
+    (identifier/p 'procedure?)
+    (token/p 'CLOSE-PAREN)
+    (pure 'functional/c)))
+
+(define simplify-binary-composition/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (eq? a b)
+             (eq? b c))
+        (pure (list 'binary-composition/c a))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to binary composition"))))))
+
+(define simplify-binary-predicate/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (identifier/p 'boolean?)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'binary-predicate/c a))))
+
+(define simplify-binary-constructor/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (not (eq? a b))
+             (eq? b c))
+        (pure (list 'binary-constructor/c a b))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to binary constructor"))))))
+
+(define simplify-bab-binary-constructor/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (not (eq? a b))
+             (eq? a c))
+        (pure (list 'binary-constructor/c '#:order ''bab b a))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to binary constructor"))))))
+
+(define simplify-variadic-composition/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'variadic-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (eq? a b)
+        (pure (list 'variadic-composition/c a))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to variadic composition"))))))
+
+(define simplify-variadic-predicate/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'variadic-function/c)
+    [a <- contract/p]
+    (identifier/p 'boolean?)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'variadic-predicate/c a))))
+
+(define simplify-variadic-constructor/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'variadic-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (not (eq? a b))
+             (eq? a c))
+        (pure (list 'variadic-constructor/c '#:order ''bab b a))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to bab variadic constructor"))))))
+
+(define simplify-bab-variadic-constructor/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'variadic-function/c)
+    [a <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'tail)
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (not (eq? a b))
+             (eq? b c))
+        (pure (list 'variadic-constructor/c a b))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "can't simplify to variadic constructor"))))))
+
+(define simplify-maybe/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'maybe/c)
+    (identifier/p)
+    (literal/p '#f)
+    (token/p 'CLOSE-PAREN)
+    (pure 'maybe/c)))
+
+;; TODO: could potentially remove the special case handling (e.g. eliminating
+;; any/c in self-map/p etc.) in the above parsers and incorporate them instead
+;; in the "second pass" compilation.
+;; so that translate should consist of (1) preparing the input into the operative
+;; type (e.g. quoted list), (2) recursing over the result passed through the
+;; compiler. (3) Stopping when the result reaches steady state.
+;; Implementation:
+;; (0) arguably, first get the tests to pass with the simplified rules test
+;; (1) The first level of parsers just convert to the "initials" of the social
+;; contract language, e.g. function/c, binary-function/c, maybe/c, etc.
+;; (2) the second level continues from there, using topological ordering on
+;; the macro specifications, continuing from the "initials"
+;; (3) The final level should contain any lingering simplifications
+;; -> Each "pass" should be a full cycle back to string so that the lexer
+;;    can be used afresh
+
+(define simplifier/p
+  (or/p (try/p simplify-functional/p)
+        (try/p simplify-self-map/p)
+        (try/p simplify-hash-function/p)
+        (try/p simplify-predicate/p)
+        (try/p simplify-encoder/p)
+        (try/p simplify-decoder/p)
+        (try/p simplify-binary-composition/p)
+        (try/p simplify-binary-predicate/p)
+        (try/p simplify-binary-constructor/p)
+        (try/p simplify-bab-binary-constructor/p)
+        (try/p simplify-variadic-composition/p)
+        (try/p simplify-variadic-predicate/p)
+        (try/p simplify-variadic-constructor/p)
+        (try/p simplify-bab-variadic-constructor/p)
+        (try/p simplify-maybe/p)))
+
 (define contract/p
-  (or/p (try/p (literal/p))
+  (or/p (try/p simplifier/p)
+        (try/p (literal/p))
         (try/p (identifier/p))
         (try/p classifier/p)
         (try/p map/p)
@@ -663,8 +861,46 @@ ARROW
       (check-equal? (translate '(-> any/c (-> a a)))
                     '(encoder/c (self-map/c a))))
      (test-suite
-      "miscellaneous"
+      "pass-through"
+      ;; this should also pass through unrecognized contracts
       (check-equal? (translate '(values integer? integer?))
-                    '(values integer? integer?)))))
+                    '(values integer? integer?)))
+
+     (test-suite
+      "simplify social contracts"
+      (check-equal? (translate '(function/c number? number?))
+                    '(self-map/c number?))
+      (check-equal? (translate '(function/c any/c number?))
+                    '(encoder/c number?))
+      (check-equal? (translate '(function/c number? any/c))
+                    '(decoder/c number?))
+      (check-equal? (translate '(function/c any/c fixnum?))
+                    'hash-function/c)
+      (check-equal? (translate '(function/c number? boolean?))
+                    '(predicate/c number?))
+      (check-equal? (translate '(function/c any/c boolean?))
+                    'predicate/c)
+      (check-equal? (translate '(function/c procedure? procedure?))
+                    'functional/c)
+      ;; (check-equal? (translate '(self-map/c procedure?))
+      ;;               'functional/c)
+      (check-equal? (translate '(binary-function/c number? number? number?))
+                    '(binary-composition/c number?))
+      (check-equal? (translate '(binary-function/c number? number? boolean?))
+                    '(binary-predicate/c number?))
+      (check-equal? (translate '(binary-function/c number? list? list?))
+                    '(binary-constructor/c number? list?))
+      (check-equal? (translate '(binary-function/c list? number? list?))
+                    '(binary-constructor/c #:order 'bab number? list?))
+      (check-equal? (translate '(variadic-function/c number? number?))
+                    '(variadic-composition/c number?))
+      (check-equal? (translate '(variadic-function/c number? boolean?))
+                    '(variadic-predicate/c number?))
+      (check-equal? (translate '(variadic-function/c number? (tail list?) list?))
+                    '(variadic-constructor/c number? list?))
+      (check-equal? (translate '(variadic-function/c list? number? list?))
+                    '(variadic-constructor/c #:order 'bab number? list?))
+      (check-equal? (translate '(maybe/c number? #f))
+                    'maybe/c))))
 
   (void (run-tests c3po-tests)))
