@@ -10,6 +10,8 @@
          (prefix-in : parser-tools/lex-sre)
          racket/format)
 
+(provide translate)
+
 (module+ test
   (require rackunit
            rackunit/text-ui))

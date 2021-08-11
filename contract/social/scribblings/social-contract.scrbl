@@ -4,6 +4,7 @@
          scribble/example
          racket/sandbox
          @for-label[contract/social
+                    contract/social/c3po
                     (except-in racket predicate/c)
                     (only-in data/collection sequenceof)]]
 
@@ -16,7 +17,8 @@
                                            racket/function
                                            (except-in racket/contract
                                                       predicate/c)
-                                           contract/social))))
+                                           contract/social
+                                           contract/social/c3po))))
 
 @title{Social Contracts}
 @author{Siddhartha Kasivajhula}
@@ -24,6 +26,26 @@
 @defmodule[contract/social]
 
 Collectively-defined contracts for commonly encountered types.
+
+@section{Introduction}
+
+Racket's @seclink["contracts" #:doc '(lib "scribblings/reference/reference.scrbl")]{contract DSL} is a flexible way to describe @emph{arbitrary} data types. In practice, there are a relatively small number of contracts that are very common, which correspond to standard notions or concepts that are broadly useful. The contract DSL does not explicitly encode these high-level concepts but rather expresses them in the same way as it does obscure, idiosyncratic concepts. In this sense, it is a @emph{low-level language} for describing the contract, analogous to describing the operation of addition in terms of @hyperlink["https://en.wikipedia.org/wiki/Combinational_logic"]{combinational logic}.
+
+The present module provides a curated list of composable contracts which describe commonly encountered (high-level) data types, contracts whose definitions are collectively agreed upon. This agreement may take the form of collaborative development and discussion on the @hyperlink["https://github.com/countvajhula/social-contract/issues"]{source repository}, to agree on, for instance, the most useful form and variations of a @racketlink[predicate/c]{predicate} contract, or, at least, the agreement may simply be tacit in the sense that these contracts correspond to ideas that are common and widely known.
+
+As an example, when you take two values of the same type and produce another value of the same type, this is an instance of @emph{composition}. Instead of specifying the contract for such a function using the contract DSL (e.g. @racket[(-> integer? integer? integer?)]) where the idea of composition cannot be encoded, we simply use the appropriate high-level composition contract (e.g. @racket[(binary-composition/c integer?)]). This helps both the writer as well as the reader of the code, since for the former it may reveal something that they hadn't already realized in thinking about the function merely as one which takes two integers and produces another -- that the function they wrote is a composing function -- and for the latter, it saves them the trouble of parsing the contract specification to understand that, indeed, this is a function that composes two values.
+
+@section{How Do I Migrate My Existing Contracts?}
+
+For contracts that you've already written (e.g. in a module's @racket[provide] specification using @racket[contract-out]), one way to migrate them is to just do so manually, inspecting each one, understanding the high level idea involved if it is a common one, and then selecting the appropriate social contract to use in its place. This is a good exercise and would help you see the high level ideas encoded in your function specifications.
+
+Another way, which could complement the manual approach but is especially useful if you are doing this for a large number of contracts and projects, is to use the @racket[contract/social/c3po] module which is a "social protocol assistant" parser. You could think of it as a shiny golden droid that, while helpful, doesn't always say the right things and requires you to make the final decisions. See @secref{c3po} for more on how to use it to help you migrate your contracts.
+
+@section{What if I Don't See the Contract I Need?}
+
+If the appropriate contract does not exist and you believe that the data you are attempting to describe is relatively general or common (e.g. you've needed this contract more than once, and suspect that others might, as well), consider @hyperlink["https://github.com/countvajhula/social-contract/issues"]{bringing it up} for possible addition. With enough support or motivation, it will be added.
+
+@section{Contracts}
 
 @deftogether[(
 @defidform[function/c]
@@ -85,7 +107,9 @@ Collectively-defined contracts for commonly encountered types.
 }
 
 @defidform[functional/c]{
- A contract to recognize a function that accepts a function and returns another function. Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
+ A contract to recognize a function that accepts a function and returns another function. Not to be confused with @racket[function/c], "functional" is a term used to refer to @hyperlink["https://en.wikipedia.org/wiki/Higher-order_function"]{higher-order functions}.
+
+ Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
 }
 
 @deftogether[(
@@ -199,7 +223,7 @@ Collectively-defined contracts for commonly encountered types.
 @defform[(variadic-constructor/c primitive/c composite/c)]
 @defform[#:link-target? #f (variadic-constructor/c #:order order primitive/c composite/c)]
 )]{
-  Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type including the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs.
+  Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type including the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs. Note that the @racket[order] parameter controls the order in which the @emph{contracted function} expects arguments, not the present forms. That is, regardless of the order specified using @racket[order], the first argument to these contract forms is always @racket[primitive/c], and the second argument is always @racket[composite/c].
 
   @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
 
@@ -288,3 +312,26 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
 	(eval:error (my-sum (list "1" "2" "3" "4")))
   ]
 }
+
+@section[#:tag "c3po"]{"C3PO": Contract Migration Assistant}
+
+@defmodule[contract/social/c3po]
+
+C3PO is a kind of "reverse compiler" that can help you migrate your contracts to social contracts. It accepts a quoted list of contracts (for instance, extracted from a @racket[(provide (contract-out ...))] specification) written in Racket's contract DSL, and translates them into high-level social contracts. It can even accept social contracts you've already written and translate them into more minimal representations, so it could potentially be incorporated into a general-purpose linter for contracts.
+
+To use it, simply invoke the @racket[translate] function with a string or quoted list representation of a contract (e.g. extracted from a @racket[(provide (contract-out ...))] specification). It will output the contract "reverse-compiled" as a high-level social contract.
+
+@defproc[(translate [ctc any/c])
+         any/c]{
+ "Reverse compile" the contract @racket[ctc] as a social contract specification. @racket[ctc] is expected to be a quoted list representing a contract (e.g. @racket['(-> number? string?)]) or a string (e.g. @racket["(-> number? string?)"]) or a literal such as a symbol (e.g. @racket['predicate/c]).
+
+@examples[
+    #:eval eval-for-docs
+    (translate '(-> integer? integer? integer?))
+    (translate '(-> any/c number?))
+    (translate '(-> string? any/c))
+    (translate '(-> (-> integer? integer? integer?) (-> integer? integer? integer?)))
+]
+}
+
+Be aware that you should not use C3PO blindly, since low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}.
