@@ -317,19 +317,18 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
 
 @defmodule[contract/social/c3po]
 
-C3PO is a kind of "reverse compiler" that can help you migrate your contracts to social contracts. It accepts a quoted list of contracts (for instance, extracted from a @racket[(provide (contract-out ...))] specification) written in Racket's contract DSL, and translates them into high-level social contracts. It can even accept social contracts you've already written and translate them into more minimal representations, so it could potentially be incorporated into a general-purpose linter for contracts.
+C3PO is a "reverse compiler" that can help you migrate your contracts to social contracts. It accepts contracts (for instance, extracted from a @racket[(provide (contract-out ...))] specification) written in Racket's contract DSL, and translates them into high-level social contracts. It can even accept social contracts you've already written and translate them into more minimal representations, so it could potentially be incorporated into a general-purpose linter for contracts.
 
-To use it, simply invoke the @racket[translate] function with a string or quoted list representation of a contract (e.g. extracted from a @racket[(provide (contract-out ...))] specification). It will output the contract "reverse-compiled" as a high-level social contract.
+To use it, simply @racket[translate] a contract in order to "reverse-compile" it as a high-level social contract.
 
-@defproc[(translate [ctc any/c])
-         any/c]{
- "Reverse compile" the contract @racket[ctc] as a social contract specification. @racket[ctc] is expected to be a quoted list representing a contract (e.g. @racket['(-> number? string?)]) or a string (e.g. @racket["(-> number? string?)"]) or a literal such as a symbol (e.g. @racket['predicate/c]).
+@defform[(translate ctc)]{
+ "Reverse compile" the contract @racket[ctc] as a social contract specification.
 
 @racketblock[
-    (translate '(-> integer? integer? integer?))
-    (translate '(-> any/c number?))
-    (translate '(-> string? any/c))
-    (translate '(-> (-> integer? integer? integer?) (-> integer? integer? integer?)))
+    (translate (-> integer? integer? integer?))
+    (translate (-> any/c number?))
+    (translate (-> string? any/c))
+    (translate (-> (-> integer? integer? integer?) (-> integer? integer? integer?)))
 ]
 }
 
