@@ -675,6 +675,10 @@ ARROW
     (token/p 'CLOSE-PAREN)
     (pure (list* form-name as))))
 
+(define spec/p
+  (or/p (try/p provide/p)
+        (try/p contract/p)))
+
 ;; this represents a single "pass" of the compiler
 (define/contract (compile-pass src parser)
   (-> string? parser? any/c)
@@ -700,11 +704,8 @@ ARROW
     (upcompile src
                parser))))
 
-(define-syntax-parse-rule (translate-provide pf)
-  (~translate (~a 'pf) provide/p))
-
-(define-syntax-parse-rule (translate ctc)
-  (~translate (~a 'ctc) contract/p))
+(define-syntax-parse-rule (translate src)
+  (~translate (~a 'src) spec/p))
 
 (module+ test
   (define c3po-tests
