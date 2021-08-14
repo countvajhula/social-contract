@@ -1,0 +1,34 @@
+#lang racket
+
+(require megaparsack
+         megaparsack/parser-tools/lex
+         data/monad
+         data/applicative)
+
+(provide identifier/p
+         literal/p
+         form/p
+         symex/p)
+
+(define (identifier/p [name #f])
+  (guard/p (token/p 'IDENTIFIER)
+           (λ (result)
+             (or (not name)
+                 (eq? name result)))))
+
+(define (literal/p [name #f])
+  (guard/p (token/p 'LITERAL)
+           (λ (result)
+             (or (not name)
+                 (eq? name result)))))
+
+(define form/p
+  (do (token/p 'OPEN-PAREN)
+      [a <- (many*/p symex/p)]
+    (token/p 'CLOSE-PAREN)
+    (pure a)))
+
+(define symex/p
+  (or/p (try/p (literal/p))
+        (try/p (identifier/p))
+        (try/p form/p)))
