@@ -40,20 +40,31 @@ ARROW
 
 (define-tokens contract (IDENTIFIER LITERAL))
 (define-empty-tokens contract-empty
-  (OPEN-PAREN CLOSE-PAREN ARROW ELLIPSIS))
+  (OPEN-PAREN CLOSE-PAREN ELLIPSIS))
 
 (define contract-lexer
-  (lexer-src-pos [(:: (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)))
-                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z) #\/ #\- #\?))) ; TODO: ensure coverage
-                  (token-IDENTIFIER (string->symbol lexeme))]
-                 [(:: (:+ (:or (:/ #\0 #\9) #\# #\"))
-                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z))))
+  (lexer-src-pos ["..." (token-ELLIPSIS)]
+                 [(:or "(" "[") (token-OPEN-PAREN)]
+                 [(:or ")" "]") (token-CLOSE-PAREN)]
+                 [(:: (:+ (:or (:/ #\0 #\9) #\# #\" #\'))
+                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
+                               #\^ #\% #\~ #\- #\: #\< #\>
+                               #\+ #\* #\$ #\@ #\! #\& #\=
+                               #\_ #\/ #\? #\# #\\
+                               #\.)))
                   (token-LITERAL (read (open-input-string lexeme)))]
+                 [(:: (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
+                               #\^ #\% #\~ #\- #\: #\< #\>
+                               #\+ #\* #\$ #\@ #\! #\& #\=
+                               #\_ #\/ #\? #\# #\\
+                               #\.))
+                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
+                               #\^ #\% #\~ #\- #\: #\< #\>
+                               #\+ #\* #\$ #\@ #\! #\& #\=
+                               #\_ #\/ #\? #\# #\\
+                               #\.)))
+                  (token-IDENTIFIER (string->symbol lexeme))]
                  [(eof) eof] ; to e.g. use with apply-lexer from brag/support
-                 ["(" (token-OPEN-PAREN)]
-                 [")" (token-CLOSE-PAREN)]
-                 ["->" (token-ARROW)]
-                 ["..." (token-ELLIPSIS)]
                  [whitespace (void)]))
 
 (define (lex str lexer)
@@ -74,6 +85,9 @@ ARROW
            (λ (result)
              (or (not name)
                  (eq? name result)))))
+
+(define arrow/p
+  (identifier/p '->))
 
 ;; We prefer to reduce all contracts before going to next level
 ;; so that we don't need to retain lower-level special handling
@@ -101,7 +115,7 @@ ARROW
 
 (define function/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [a <- contract/p]
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
@@ -279,7 +293,7 @@ ARROW
 
 (define thunk/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
     (if (eq? 'any/c target)
@@ -308,7 +322,7 @@ ARROW
 
 (define free-binary-function/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [a <- contract/p]
     [b <- contract/p]
     [c <- contract/p]
@@ -448,7 +462,7 @@ ARROW
 
 (define variadic-binary-tail/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [a <- contract/p]
     (token/p 'ELLIPSIS)
     [b <- contract/p]
@@ -458,7 +472,7 @@ ARROW
 
 (define variadic-binary/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [a <- contract/p]
     [b <- contract/p]
     (token/p 'ELLIPSIS)
@@ -468,7 +482,7 @@ ARROW
 
 (define variadic-simple/p
   (do (token/p 'OPEN-PAREN)
-      (token/p 'ARROW)
+      arrow/p
     [a <- contract/p]
     (token/p 'ELLIPSIS)
     [b <- contract/p]
@@ -580,7 +594,7 @@ ARROW
     (token/p 'CLOSE-PAREN)
     (pure (list* name ctcs))))
 
-(define contract/p
+(define basic-contract/p
   (or/p (try/p (literal/p))
         (try/p (identifier/p))
         (try/p function/p)
@@ -606,38 +620,91 @@ ARROW
         (try/p variadic-constructor/p)
         (try/p named-contract-specification/p)))
 
+(define star-contract/p
+  (do (token/p 'OPEN-PAREN)
+      [arrowstar <- (identifier/p '->*)]
+    (token/p 'OPEN-PAREN)
+    [required <- (many*/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'OPEN-PAREN)
+    [optional <- (many*/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    [output <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list arrowstar required optional output))))
+
+(define contract/p
+  (or/p (try/p basic-contract/p)
+        (try/p star-contract/p)))
+
 (define (lex-contract ctc)
   (lex ctc contract-lexer))
 
-;; parse-contract represents a single "pass" of the compiler
-(define/contract (parse-contract ctc)
-  (-> string? any/c)
+(define contracted-function/p
+  (do (token/p 'OPEN-PAREN)
+      [id <- (identifier/p)]
+    [ctc <- (or/p (try/p contract/p)
+                  symex/p)]
+    (token/p 'CLOSE-PAREN)
+    (pure (list id ctc))))
+
+(define contract-out/p
+  (do (token/p 'OPEN-PAREN)
+      [form-name <- (identifier/p 'contract-out)]
+    [a <- (many*/p contracted-function/p)]
+    (token/p 'CLOSE-PAREN)
+    (pure (list* form-name a))))
+
+(define form/p
+  (do (token/p 'OPEN-PAREN)
+      [a <- (many*/p symex/p)]
+    (token/p 'CLOSE-PAREN)
+    (pure a)))
+
+(define symex/p
+  (or/p (try/p (literal/p))
+        (try/p (identifier/p))
+        (try/p form/p)))
+
+(define provide/p
+  (do (token/p 'OPEN-PAREN)
+      [form-name <- (identifier/p 'provide)]
+    [as <- (many*/p
+            (or/p (try/p contract-out/p)
+                  symex/p))]
+    (token/p 'CLOSE-PAREN)
+    (pure (list* form-name as))))
+
+;; this represents a single "pass" of the compiler
+(define/contract (compile-pass src parser)
+  (-> string? parser? any/c)
   (parse-result!
-   (parse-tokens contract/p
-                 (lex-contract ctc))))
+   (parse-tokens parser
+                 (lex-contract src))))
 
 ;; upcompile performs multiple compiler passes until the input
 ;; converges to steady state. Each pass performs a full cycle
 ;; from string to string so that the subsequent pass can use
 ;; the lexer afresh and is essentially independent
-(define/contract (upcompile ctc)
-  (-> string? string?)
-  (let ([result (with-handlers ([exn:fail? (λ (e) ctc)])
-                  (~a (parse-contract ctc)))])
-    (if (equal? ctc result)
+(define/contract (upcompile src parser)
+  (-> string? procedure? string?)
+  (let ([result (with-handlers ([exn:fail? (λ (e) src)])
+                  (~a (compile-pass src parser)))])
+    (if (equal? src result)
         result
-        (upcompile result))))
+        (upcompile result parser))))
 
-(define-syntax-parse-rule (translate ctc)
+(define (~translate src parser)
   (read
    (open-input-string
-    (upcompile
-     (~a 'ctc)))))
+    (upcompile src
+               parser))))
 
-;; TODO: a function translate-provide that accepts a
-;; provide spec and translates the contract-out subform
-;; also, maybe both this as well as translate should be
-;; macros to avoid issues with quoting
+(define-syntax-parse-rule (translate-provide pf)
+  (~translate (~a 'pf) provide/p))
+
+(define-syntax-parse-rule (translate ctc)
+  (~translate (~a 'ctc) contract/p))
 
 (module+ test
   (define c3po-tests
