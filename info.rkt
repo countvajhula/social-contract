@@ -2,6 +2,10 @@
 (define collection 'multi)
 (define deps '("base"
                "collections-lib"
+               "functional-lib"
+               "megaparsack-lib"
+               "megaparsack-parser-tools"
+               "parser-tools-lib"
                "mischief"
                "version-case"))
 (define build-deps '("scribble-lib"
