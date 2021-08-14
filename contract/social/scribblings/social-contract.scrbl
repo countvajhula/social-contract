@@ -39,7 +39,7 @@ As an example, when you take two values of the same type and produce another val
 
 For contracts that you've already written (e.g. in a module's @racket[provide] specification using @racket[contract-out]), one way to migrate them is to just do so manually, inspecting each one, understanding the high level idea involved if it is a common one, and then selecting the appropriate social contract to use in its place. This is a good exercise and would help you see the high level ideas encoded in your function specifications.
 
-Another way, which could complement the manual approach but is especially useful if you are doing this for a large number of contracts and projects, is to use the @racket[contract/social/c3po] module which is a "social protocol assistant" parser. You could think of it as a shiny golden droid that, while helpful, doesn't always say the right things and requires you to make the final decisions. See @secref{c3po} for more on how to use it to help you migrate your contracts.
+Another way, which is a complement to the manual approach and especially useful if you are doing this for a large number of contracts and projects, is to use the @racket[contract/social/c3po] module which is a "social protocol assistant" parser. You could think of it as a shiny golden droid that, while helpful, doesn't always say the right things and requires you to make the final decisions. See @secref{c3po} for more on how to use it to help you migrate your contracts.
 
 @section{What if I Don't See the Contract I Need?}
 
@@ -317,9 +317,9 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
 
 @defmodule[contract/social/c3po]
 
-C3PO is a "reverse compiler" that can help you migrate your contracts to social contracts. It accepts contracts (for instance, extracted from a @racket[(provide (contract-out ...))] specification) written in Racket's contract DSL, and translates them into high-level social contracts. It can even accept social contracts you've already written and translate them into more minimal representations, so it could potentially be incorporated into a general-purpose linter for contracts.
+C3PO is a "reverse compiler" that can help you migrate your contracts to social contracts. It accepts contracts, either individually or as an entire @racket[provide] form, and translates the input so it is rephrased in terms of high-level social contracts. It can even accept social contracts you've already written and translate them into more minimal representations, so it could potentially be incorporated into a general-purpose linter for contracts.
 
-To use it, simply @racket[translate] a contract in order to "reverse-compile" it as a high-level social contract.
+To use it, simply @racket[translate] a contract or @racket[provide] specification (provided verbatim without quoting) in order to "reverse-compile" it into high-level social contracts.
 
 @defform[(translate ctc)]{
  "Reverse compile" the contract @racket[ctc] as a social contract specification.
@@ -329,7 +329,22 @@ To use it, simply @racket[translate] a contract in order to "reverse-compile" it
     (translate (-> any/c number?))
     (translate (-> string? any/c))
     (translate (-> (-> integer? integer? integer?) (-> integer? integer? integer?)))
+    (translate (provide address occupation (contract-out [name (-> any/c string?)])))
 ]
 }
 
-Be aware that you should not use C3PO blindly, since low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}.
+@subsection{Limitations}
+
+You should use C3PO as an assistant and not defer to it blindly, due to the following limitations.
+
+@subsubsection{Correct Vs Appropriate Contracts}
+
+Low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}.
+
+@subsubsection{No Unicode Identifiers}
+
+C3PO does not handle unicode identifiers in general, and if these are present it would simply raise an error requiring manual intervention on your part.
+
+@subsubsection{Not All Contract Forms Supported}
+
+At the moment, C3PO supports the @racket[->] and @racket[->*] contract forms, but not @racket[->i]. If @racket[->i] is encountered during parsing, it would just leave this form unchanged in the output (while translating the rest of it).
