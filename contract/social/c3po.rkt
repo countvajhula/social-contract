@@ -185,6 +185,13 @@
                      '(blah 1 2)))
 
       (test-suite
+       "edge cases"
+       (check-equal? (translate (-> (function/c number? string?) (sequenceof string?) (sequenceof number?)))
+                     '(binary-function/c (function/c number? string?) (sequenceof string?) (sequenceof number?)))
+       (check-equal? (translate (-> (-> number? string?) (sequenceof string?) (sequenceof number?)))
+                     '(binary-function/c (function/c number? string?) (sequenceof string?) (sequenceof number?))))
+
+      (test-suite
        "simplify social contracts"
        (check-equal? (translate (function/c number? number?))
                      '(self-map/c number?))
