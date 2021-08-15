@@ -543,7 +543,7 @@
         (try/p variadic-constructor/p)
         (try/p named-contract-specification/p)))
 
-(define star-contract/p
+(define star-contract-basic/p
   (do (token/p 'OPEN-PAREN)
       [arrowstar <- (identifier/p '->*)]
     (token/p 'OPEN-PAREN)
@@ -555,6 +555,25 @@
     [output <- contract/p]
     (token/p 'CLOSE-PAREN)
     (pure (list arrowstar required optional output))))
+
+(define star-contract-with-rest/p
+  (do (token/p 'OPEN-PAREN)
+      [arrowstar <- (identifier/p '->*)]
+    (token/p 'OPEN-PAREN)
+    [required <- (many*/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'OPEN-PAREN)
+    [optional <- (many*/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (literal/p '#:rest)
+    [rest-ctc <- contract/p]
+    [output <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list arrowstar required optional '#:rest rest-ctc output))))
+
+(define star-contract/p
+  (or/p (try/p star-contract-basic/p)
+        (try/p star-contract-with-rest/p)))
 
 (define contract/p
   (or/p (try/p basic-contract/p)
