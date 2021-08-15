@@ -3,6 +3,10 @@
 (require parser-tools/lex
          (prefix-in : parser-tools/lex-sre))
 
+(module+ test
+  (require rackunit
+           rackunit/text-ui))
+
 (provide lex
          lex-source)
 
@@ -11,6 +15,7 @@ Grammar:
 CONTRACT = IDENTIFIER
          | LITERAL
          | OPEN-PAREN ARROW CONTRACT ... CLOSE-PAREN
+         | OPEN-PAREN CONTRACT ... DOT ARROW DOT CONTRACT CLOSE-PAREN
          | OPEN-PAREN IDENTIFIER CONTRACT ... CLOSE-PAREN
 
 Terminals:
@@ -23,12 +28,13 @@ ARROW
 
 (define-tokens contract (IDENTIFIER LITERAL))
 (define-empty-tokens contract-empty
-  (OPEN-PAREN CLOSE-PAREN ELLIPSIS))
+  (OPEN-PAREN CLOSE-PAREN ELLIPSIS DOT))
 
 (define contract-lexer
   (lexer-src-pos ["..." (token-ELLIPSIS)]
                  [(:or "(" "[") (token-OPEN-PAREN)]
                  [(:or ")" "]") (token-CLOSE-PAREN)]
+                 ;; note that keywords like #:abc are treated as literals
                  [(:: (:+ (:or (:/ #\0 #\9) #\# #\" #\'))
                       (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
                                #\^ #\% #\~ #\- #\: #\< #\>
@@ -36,17 +42,23 @@ ARROW
                                #\_ #\/ #\? #\# #\\
                                #\.)))
                   (token-LITERAL (read (open-input-string lexeme)))]
-                 [(:: (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
-                               #\^ #\% #\~ #\- #\: #\< #\>
-                               #\+ #\* #\$ #\@ #\! #\& #\=
-                               #\_ #\/ #\? #\# #\\
-                               #\.))
-                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
-                               #\^ #\% #\~ #\- #\: #\< #\>
-                               #\+ #\* #\$ #\@ #\! #\& #\=
-                               #\_ #\/ #\? #\# #\\
-                               #\.)))
+                 [(:or (:: #\.
+                           (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
+                                    #\^ #\% #\~ #\- #\: #\< #\>
+                                    #\+ #\* #\$ #\@ #\! #\& #\=
+                                    #\_ #\/ #\? #\# #\\
+                                    #\.)))
+                       (:: (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
+                                    #\^ #\% #\~ #\- #\: #\< #\>
+                                    #\+ #\* #\$ #\@ #\! #\& #\=
+                                    #\_ #\/ #\? #\# #\\))
+                           (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
+                                    #\^ #\% #\~ #\- #\: #\< #\>
+                                    #\+ #\* #\$ #\@ #\! #\& #\=
+                                    #\_ #\/ #\? #\# #\\
+                                    #\.))))
                   (token-IDENTIFIER (string->symbol lexeme))]
+                 [#\. (token-DOT)]
                  [(eof) eof] ; to e.g. use with apply-lexer from brag/support
                  [whitespace (void)]))
 
@@ -59,3 +71,14 @@ ARROW
 
 (define (lex-source src)
   (lex src contract-lexer))
+
+(module+ test
+  (define lexer-tests
+    (test-suite
+     "lexer tests"
+     (check-equal? (position-token-token (first (lex-source "("))) 'OPEN-PAREN)
+     (check-equal? (token-name (position-token-token (first (lex-source "#:key")))) 'LITERAL)
+     (check-equal? (token-name (position-token-token (first (lex-source "->")))) 'IDENTIFIER)
+     (check-equal? (position-token-token (first (lex-source "."))) 'DOT)))
+
+  (void (run-tests lexer-tests)))
