@@ -130,25 +130,38 @@
      (test-suite
       "classifier/c"
       (check-equal? (translate (-> (-> any/c number?) sequence? (sequenceof sequence?))) '(classifier/c number?))
-      (check-equal? (translate (-> (-> any/c string?) sequence? (sequenceof sequence?))) '(classifier/c string?)))
+      (check-equal? (translate (-> (-> any/c string?) sequence? (sequenceof sequence?))) '(classifier/c string?))
+      (check-equal? (translate (-> (-> any/c number?) sequence? (listof sequence?))) '(classifier/c number?))
+      (check-equal? (translate (-> (-> any/c number?) list? (listof list?))) '(classifier/c number?)))
 
      (test-suite
       "map/c"
       (check-equal? (translate (-> (-> number? string?) (sequenceof number?) (sequenceof string?))) '(map/c number? string?))
-      (check-equal? (translate (-> (-> any/c any/c) (sequenceof any/c) (sequenceof any/c))) 'map/c))
+      (check-equal? (translate (-> (-> any/c any/c) (sequenceof any/c) (sequenceof any/c))) 'map/c)
+      (check-equal? (translate (-> (-> any/c any/c) (listof any/c) (listof any/c))) 'map/c)
+      (check-equal? (translate (-> (-> any/c any/c) sequence? sequence?)) 'map/c)
+      (check-equal? (translate (-> (-> any/c any/c) list? list?)) 'map/c)
+      (check-equal? (translate (-> (-> number? string?) (listof number?) (listof string?))) '(map/c number? string?)))
 
      (test-suite
       "filter/c"
       (check-equal? (translate (-> (-> number? boolean?) (sequenceof number?) (sequenceof number?))) '(filter/c number?))
-      (check-equal? (translate (-> (-> any/c boolean?) (sequenceof any/c) (sequenceof any/c))) 'filter/c))
+      (check-equal? (translate (-> (-> any/c boolean?) (sequenceof any/c) (sequenceof any/c))) 'filter/c)
+      (check-equal? (translate (-> (-> any/c boolean?) (listof any/c) (listof any/c))) 'filter/c)
+      (check-equal? (translate (-> (-> any/c boolean?) sequence? sequence?)) 'filter/c)
+      (check-equal? (translate (-> (-> any/c boolean?) list? list?)) 'filter/c)
+      (check-equal? (translate (-> (-> number? boolean?) (listof number?) (listof number?))) '(filter/c number?)))
 
      (test-suite
       "reducer/c"
       (check-equal? (translate (-> (sequenceof number?) string?)) '(reducer/c number? string?))
       (check-equal? (translate (-> (sequenceof number?) number?)) '(reducer/c number?))
-      ;; TODO: could also parse sequence? listof and list? here
-      ;; and similarly for all sequence-related contracts
-      (check-equal? (translate (-> (sequenceof any/c) any/c)) 'reducer/c))
+      (check-equal? (translate (-> (sequenceof any/c) any/c)) 'reducer/c)
+      (check-equal? (translate (-> (listof any/c) any/c)) 'reducer/c)
+      (check-equal? (translate (-> sequence? any/c)) 'reducer/c)
+      (check-equal? (translate (-> list? any/c)) 'reducer/c)
+      (check-equal? (translate (-> (listof number?) number?)) '(reducer/c number?))
+      (check-equal? (translate (-> (listof number?) string?)) '(reducer/c number? string?)))
 
      (test-suite
       "composition"

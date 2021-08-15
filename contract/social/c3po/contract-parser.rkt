@@ -98,19 +98,30 @@
     (identifier/p 'encoder/c) ; note: does not recognize classifying by any/c
     [a <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (identifier/p 'sequence?)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'sequenceof)
-    (identifier/p 'sequence?)
-    (token/p 'CLOSE-PAREN)
+    sequence/p
+    (parametric-sequence/p sequence/p)
     (pure (list 'classifier/c a))))
 
+(define sequence/p
+  (or/p (try/p (identifier/p 'sequence?))
+        (try/p (identifier/p 'list?))
+        (try/p (identifier/p 'vector?))))
+
+(define parametric-sequence-identifier/p
+  (or/p (try/p (identifier/p 'sequenceof))
+        (try/p (identifier/p 'listof))
+        (try/p (identifier/p 'vectorof))))
+
+(define (parametric-sequence/p [ctc/p contract/p])
+  (do (token/p 'OPEN-PAREN)
+      parametric-sequence-identifier/p
+    [a <- ctc/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'sequenceof a)))) ; all parametric sequences get converted to sequenceof, for now
+
 (define generic-sequence/p
-  (or/p (try/p (do (token/p 'OPEN-PAREN)
-                   (identifier/p 'sequenceof)
-                 (identifier/p 'any/c)
-                 (token/p 'CLOSE-PAREN)))
-        (try/p (identifier/p 'sequence?))))
+  (or/p (try/p (parametric-sequence/p (identifier/p 'any/c)))
+        (try/p sequence/p)))
 
 (define generic-map/p
   (do (token/p 'OPEN-PAREN)
@@ -129,16 +140,10 @@
     [a <- contract/p]
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'sequenceof)
-    [c <- contract/p]
+    [c <- (parametric-sequence/p)]
+    [d <- (parametric-sequence/p)]
     (token/p 'CLOSE-PAREN)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'sequenceof)
-    [d <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (token/p 'CLOSE-PAREN)
-    (if (and (equal? a c) (equal? b d))
+    (if (and (equal? a (second c)) (equal? b (second d)))
         (if (equal? a b)
             (pure (list 'map/c a))
             (pure (list 'map/c a b)))
@@ -175,12 +180,9 @@
     (identifier/p 'predicate/c)
     [a <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'sequenceof)
-    [b <- contract/p]
+    [b <- (parametric-sequence/p)]
     (token/p 'CLOSE-PAREN)
-    (token/p 'CLOSE-PAREN)
-    (if (equal? a b)
+    (if (equal? a (second b))
         (pure (list 'filter/c a))
         (fail/p (message (srcloc #f #f #f #f #f)
                          a
@@ -201,15 +203,12 @@
 (define specific-reducer/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'sequenceof)
-    [a <- contract/p]
-    (token/p 'CLOSE-PAREN)
+    [a <- (parametric-sequence/p)]
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (if (equal? a b)
-        (pure (list 'reducer/c a))
-        (pure (list 'reducer/c a b)))))
+    (if (equal? (second a) b)
+        (pure (list 'reducer/c b))
+        (pure (list 'reducer/c (second a) b)))))
 
 (define reducer/p
   (or/p (try/p generic-reducer/p)
