@@ -341,10 +341,6 @@ You should use C3PO as an assistant and not defer to it blindly, due to the foll
 
 Low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}.
 
-@subsubsection{No Unicode Identifiers}
-
-C3PO does not handle unicode identifiers in general, and if these are present it would simply raise an error requiring manual intervention on your part.
-
 @subsubsection{Not All Contract Forms Supported}
 
 At the moment, C3PO supports the @racket[->] and @racket[->*] contract forms, but not @racket[->i]. If @racket[->i] is encountered during parsing, it would just leave this form unchanged in the output (while translating the rest of it).

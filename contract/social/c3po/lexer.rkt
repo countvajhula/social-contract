@@ -30,42 +30,24 @@ ARROW
 (define-empty-tokens contract-empty
   (OPEN-PAREN CLOSE-PAREN ELLIPSIS))
 
+(define-lex-abbrev content-character
+  ;; non-whitespace and not a structural character like ( or )
+  (:& (:or alphabetic numeric symbolic punctuation graphic)
+      (complement (:or "(" ")" "[" "]"))))
+
 (define contract-lexer
   (lexer-src-pos ["..." (token-ELLIPSIS)]
                  [(:or "(" "[") (token-OPEN-PAREN)]
                  [(:or ")" "]") (token-CLOSE-PAREN)]
-                 [(:: "#:"
-                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
-                               #\^ #\% #\~ #\- #\: #\< #\>
-                               #\+ #\* #\$ #\@ #\! #\& #\=
-                               #\_ #\/ #\? #\# #\\
-                               #\.)))
+                 [(:: "#:" (:* content-character))
                   (token-KEYWORD (read (open-input-string lexeme)))]
                  [(:: (:+ (:or (:/ #\0 #\9) #\# #\" #\'))
-                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
-                               #\^ #\% #\~ #\- #\: #\< #\>
-                               #\+ #\* #\$ #\@ #\! #\& #\=
-                               #\_ #\/ #\? #\# #\\
-                               #\.)))
+                      (:* content-character))
                   (token-LITERAL (read (open-input-string lexeme)))]
-                 [(:or (:: #\.
-                           (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
-                                    #\^ #\% #\~ #\- #\: #\< #\>
-                                    #\+ #\* #\$ #\@ #\! #\& #\=
-                                    #\_ #\/ #\? #\# #\\
-                                    #\.)))
-                       (:: (:+ (:or (:/ #\a #\z) (:/ #\A #\Z)
-                                    #\^ #\% #\~ #\- #\: #\< #\>
-                                    #\+ #\* #\$ #\@ #\! #\& #\=
-                                    #\_ #\/ #\? #\# #\\))
-                           (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
-                                    #\^ #\% #\~ #\- #\: #\< #\>
-                                    #\+ #\* #\$ #\@ #\! #\& #\=
-                                    #\_ #\/ #\? #\# #\\
-                                    #\.))))
+                 [(:+ content-character)
                   (token-IDENTIFIER (string->symbol lexeme))]
-                 [(eof) eof] ; to e.g. use with apply-lexer from brag/support
-                 [whitespace (void)]))
+                 [whitespace (void)] ; to e.g. use with apply-lexer from brag/support
+                 [(eof) eof]))
 
 (define (lex str lexer)
   (let ([port (open-input-string str)])
