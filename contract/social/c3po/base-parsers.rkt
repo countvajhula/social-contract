@@ -7,6 +7,7 @@
 
 (provide identifier/p
          literal/p
+         keyword/p
          form/p
          symex/p)
 
@@ -18,6 +19,12 @@
 
 (define (literal/p [name #f])
   (guard/p (token/p 'LITERAL)
+           (λ (result)
+             (or (not name)
+                 (eq? name result)))))
+
+(define (keyword/p [name #f])
+  (guard/p (token/p 'KEYWORD)
            (λ (result)
              (or (not name)
                  (eq? name result)))))

@@ -22,11 +22,12 @@ Terminals:
 OPEN-PAREN
 CLOSE-PAREN
 IDENTIFIER
+KEYWORD
 LITERAL
 ARROW
 |#
 
-(define-tokens contract (IDENTIFIER LITERAL))
+(define-tokens contract (IDENTIFIER LITERAL KEYWORD))
 (define-empty-tokens contract-empty
   (OPEN-PAREN CLOSE-PAREN ELLIPSIS DOT))
 
@@ -34,7 +35,13 @@ ARROW
   (lexer-src-pos ["..." (token-ELLIPSIS)]
                  [(:or "(" "[") (token-OPEN-PAREN)]
                  [(:or ")" "]") (token-CLOSE-PAREN)]
-                 ;; note that keywords like #:abc are treated as literals
+                 [(:: "#:"
+                      (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
+                               #\^ #\% #\~ #\- #\: #\< #\>
+                               #\+ #\* #\$ #\@ #\! #\& #\=
+                               #\_ #\/ #\? #\# #\\
+                               #\.)))
+                  (token-KEYWORD (read (open-input-string lexeme)))]
                  [(:: (:+ (:or (:/ #\0 #\9) #\# #\" #\'))
                       (:* (:or (:/ #\a #\z) (:/ #\A #\Z)
                                #\^ #\% #\~ #\- #\: #\< #\>
@@ -77,7 +84,8 @@ ARROW
     (test-suite
      "lexer tests"
      (check-equal? (position-token-token (first (lex-source "("))) 'OPEN-PAREN)
-     (check-equal? (token-name (position-token-token (first (lex-source "#:key")))) 'LITERAL)
+     (check-equal? (token-name (position-token-token (first (lex-source "5")))) 'LITERAL)
+     (check-equal? (token-name (position-token-token (first (lex-source "#:key")))) 'KEYWORD)
      (check-equal? (token-name (position-token-token (first (lex-source "->")))) 'IDENTIFIER)
      (check-equal? (position-token-token (first (lex-source "."))) 'DOT)))
 

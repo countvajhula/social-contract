@@ -550,7 +550,7 @@
     [required <- (many*/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'OPEN-PAREN)
-    [optional <- (many*/p contract/p)]
+    [optional <- (many*/p (or/p (try/p (keyword/p)) contract/p))]
     (token/p 'CLOSE-PAREN)
     [output <- contract/p]
     (token/p 'CLOSE-PAREN)
@@ -563,9 +563,9 @@
     [required <- (many*/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'OPEN-PAREN)
-    [optional <- (many*/p contract/p)]
+    [optional <- (many*/p (or/p (try/p (keyword/p)) contract/p))]
     (token/p 'CLOSE-PAREN)
-    (literal/p '#:rest)
+    (keyword/p '#:rest)
     [rest-ctc <- contract/p]
     [output <- contract/p]
     (token/p 'CLOSE-PAREN)
