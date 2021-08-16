@@ -38,7 +38,11 @@
   (or/p (try/p free-maybe/p)
         (try/p reducible-maybe/p)))
 
-(define (prefix-arrow-contract/p n)
+;; note that we don't need to handle infix arrow contracts separately
+;; because they get converted to prefix arrow form at the reader
+;; level prior to evaluation
+(define (arrow-contract/p n)
+  ;; n is the number of inputs -- the input arity
   (do (token/p 'OPEN-PAREN)
       arrow/p
     [doms <- (repeat/p n contract/p)]
@@ -46,22 +50,10 @@
     (token/p 'CLOSE-PAREN)
     (pure (append doms (list target)))))
 
-(define (infix-arrow-contract/p n)
-  (do (token/p 'OPEN-PAREN)
-      [doms <- (repeat/p n contract/p)]
-    (token/p 'DOT)
-    arrow/p
-    (token/p 'DOT)
-    [target <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (append doms (list target)))))
-
-(define (arrow-contract/p n)
-  ;; n is the number of inputs -- the input arity
-  (or/p (try/p (prefix-arrow-contract/p n))
-        (try/p (infix-arrow-contract/p n))))
-
-(define (prefix-variadic-arrow-contract/p n-pre n-post)
+(define (variadic-arrow-contract/p n-pre n-post)
+  ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
+  ;; the variadic argument. n-post is the number of non-variadic inputs
+  ;; following (and not including) the variadic argument
   (do (token/p 'OPEN-PAREN)
       arrow/p
     [pre-doms <- (repeat/p n-pre contract/p)]
@@ -71,26 +63,6 @@
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
     (pure (append pre-doms (list var-dom) post-doms (list target)))))
-
-(define (infix-variadic-arrow-contract/p n-pre n-post)
-  (do (token/p 'OPEN-PAREN)
-      [pre-doms <- (repeat/p n-pre contract/p)]
-    [var-dom <- contract/p]
-    (token/p 'ELLIPSIS)
-    [post-doms <- (repeat/p n-post contract/p)]
-    (token/p 'DOT)
-    arrow/p
-    (token/p 'DOT)
-    [target <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (append pre-doms (list var-dom) post-doms (list target)))))
-
-(define (variadic-arrow-contract/p n-pre n-post)
-  ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
-  ;; the variadic argument. n-post is the number of non-variadic inputs
-  ;; following (and not including) the variadic argument
-  (or/p (try/p (prefix-variadic-arrow-contract/p n-pre n-post))
-        (try/p (infix-variadic-arrow-contract/p n-pre n-post))))
 
 (define function/p
   (do [sig <- (arrow-contract/p 1)]

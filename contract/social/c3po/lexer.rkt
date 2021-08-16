@@ -15,7 +15,6 @@ Grammar:
 CONTRACT = IDENTIFIER
          | LITERAL
          | OPEN-PAREN ARROW CONTRACT ... CLOSE-PAREN
-         | OPEN-PAREN CONTRACT ... DOT ARROW DOT CONTRACT CLOSE-PAREN
          | OPEN-PAREN IDENTIFIER CONTRACT ... CLOSE-PAREN
 
 Terminals:
@@ -29,7 +28,7 @@ ARROW
 
 (define-tokens contract (IDENTIFIER LITERAL KEYWORD))
 (define-empty-tokens contract-empty
-  (OPEN-PAREN CLOSE-PAREN ELLIPSIS DOT))
+  (OPEN-PAREN CLOSE-PAREN ELLIPSIS))
 
 (define contract-lexer
   (lexer-src-pos ["..." (token-ELLIPSIS)]
@@ -65,7 +64,6 @@ ARROW
                                     #\_ #\/ #\? #\# #\\
                                     #\.))))
                   (token-IDENTIFIER (string->symbol lexeme))]
-                 [#\. (token-DOT)]
                  [(eof) eof] ; to e.g. use with apply-lexer from brag/support
                  [whitespace (void)]))
 
@@ -86,7 +84,6 @@ ARROW
      (check-equal? (position-token-token (first (lex-source "("))) 'OPEN-PAREN)
      (check-equal? (token-name (position-token-token (first (lex-source "5")))) 'LITERAL)
      (check-equal? (token-name (position-token-token (first (lex-source "#:key")))) 'KEYWORD)
-     (check-equal? (token-name (position-token-token (first (lex-source "->")))) 'IDENTIFIER)
-     (check-equal? (position-token-token (first (lex-source "."))) 'DOT)))
+     (check-equal? (token-name (position-token-token (first (lex-source "->")))) 'IDENTIFIER)))
 
   (void (run-tests lexer-tests)))
