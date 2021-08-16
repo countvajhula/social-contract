@@ -114,8 +114,6 @@
     (pure 'hash-function/c)))
 
 (define classifier/p
-  ;; This is very specific atm, expecting sequenceof and sequence?
-  ;; but should ideally accept e.g. listof and list?
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     (token/p 'OPEN-PAREN)

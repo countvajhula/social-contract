@@ -38,4 +38,5 @@
 (define symex/p
   (or/p (try/p (literal/p))
         (try/p (identifier/p))
+        (try/p (keyword/p))
         (try/p form/p)))
