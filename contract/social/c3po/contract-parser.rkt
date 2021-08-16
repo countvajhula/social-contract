@@ -4,7 +4,8 @@
          megaparsack/parser-tools/lex
          data/monad
          data/applicative
-         racket/function)
+         racket/function
+         racket/match)
 
 (require "base-parsers.rkt")
 
@@ -37,16 +38,67 @@
   (or/p (try/p free-maybe/p)
         (try/p reducible-maybe/p)))
 
-(define function/p
+(define (prefix-arrow-contract/p n)
   (do (token/p 'OPEN-PAREN)
       arrow/p
-    [a <- contract/p]
-    [b <- contract/p]
+    [doms <- (repeat/p n contract/p)]
+    [target <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (if (and (eq? 'any/c a)
-             (eq? 'any/c b))
-        (pure 'function/c)
-        (pure (list 'function/c a b)))))
+    (pure (append doms (list target)))))
+
+(define (infix-arrow-contract/p n)
+  (do (token/p 'OPEN-PAREN)
+      [doms <- (repeat/p n contract/p)]
+    (token/p 'DOT)
+    arrow/p
+    (token/p 'DOT)
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (append doms (list target)))))
+
+(define (arrow-contract/p n)
+  ;; n is the number of inputs -- the input arity
+  (or/p (try/p (prefix-arrow-contract/p n))
+        (try/p (infix-arrow-contract/p n))))
+
+(define (prefix-variadic-arrow-contract/p n-pre n-post)
+  (do (token/p 'OPEN-PAREN)
+      arrow/p
+    [pre-doms <- (repeat/p n-pre contract/p)]
+    [var-dom <- contract/p]
+    (token/p 'ELLIPSIS)
+    [post-doms <- (repeat/p n-post contract/p)]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (append pre-doms (list var-dom) post-doms (list target)))))
+
+(define (infix-variadic-arrow-contract/p n-pre n-post)
+  (do (token/p 'OPEN-PAREN)
+      [pre-doms <- (repeat/p n-pre contract/p)]
+    [var-dom <- contract/p]
+    (token/p 'ELLIPSIS)
+    [post-doms <- (repeat/p n-post contract/p)]
+    (token/p 'DOT)
+    arrow/p
+    (token/p 'DOT)
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (append pre-doms (list var-dom) post-doms (list target)))))
+
+(define (variadic-arrow-contract/p n-pre n-post)
+  ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
+  ;; the variadic argument. n-post is the number of non-variadic inputs
+  ;; following (and not including) the variadic argument
+  (or/p (try/p (prefix-variadic-arrow-contract/p n-pre n-post))
+        (try/p (infix-variadic-arrow-contract/p n-pre n-post))))
+
+(define function/p
+  (do [sig <- (arrow-contract/p 1)]
+      (match-let ([(list a b) sig])
+        (if (and (eq? 'any/c a)
+                 (eq? 'any/c b))
+            (pure 'function/c)
+            (pure (list 'function/c a b))))))
 
 (define predicate/p
   (do (token/p 'OPEN-PAREN)
@@ -215,13 +267,11 @@
         (try/p specific-reducer/p)))
 
 (define thunk/p
-  (do (token/p 'OPEN-PAREN)
-      arrow/p
-    [target <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (if (eq? 'any/c target)
-        (pure 'thunk/c)
-        (pure (list 'thunk/c target)))))
+  (do [sig <- (arrow-contract/p 0)]
+      (match-let ([(list target) sig])
+        (if (eq? 'any/c target)
+            (pure 'thunk/c)
+            (pure (list 'thunk/c target))))))
 
 (define self-map/p
   (do (token/p 'OPEN-PAREN)
@@ -244,13 +294,9 @@
     (pure 'functional/c)))
 
 (define free-binary-function/p
-  (do (token/p 'OPEN-PAREN)
-      arrow/p
-    [a <- contract/p]
-    [b <- contract/p]
-    [c <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (list 'binary-function/c a b c))))
+  (do [sig <- (arrow-contract/p 2)]
+      (match-let ([(list a b c) sig])
+        (pure (list 'binary-function/c a b c)))))
 
 (define reducible-binary-function/p
   (do (token/p 'OPEN-PAREN)
@@ -384,38 +430,24 @@
         (try/p variadic-constructor-bab/p)))
 
 (define variadic-binary-tail/p
-  (do (token/p 'OPEN-PAREN)
-      arrow/p
-    [a <- contract/p]
-    (token/p 'ELLIPSIS)
-    [b <- contract/p]
-    [c <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-function/c a (list 'tail b) c))))
+  (do [sig <- (variadic-arrow-contract/p 0 1)]
+      (match-let ([(list a b c) sig])
+        (pure (list 'variadic-function/c a (list 'tail b) c)))))
 
 (define variadic-binary/p
-  (do (token/p 'OPEN-PAREN)
-      arrow/p
-    [a <- contract/p]
-    [b <- contract/p]
-    (token/p 'ELLIPSIS)
-    [c <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-function/c a b c))))
+  (do [sig <- (variadic-arrow-contract/p 1 0)]
+      (match-let ([(list a b c) sig])
+        (pure (list 'variadic-function/c a b c)))))
 
 (define variadic-simple/p
-  (do (token/p 'OPEN-PAREN)
-      arrow/p
-    [a <- contract/p]
-    (token/p 'ELLIPSIS)
-    [b <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (cond [(andmap (curry eq? 'any/c)
-                   (list a b))
-           (pure 'variadic-function/c)]
-          [(eq? 'any/c b)
-           (pure (list 'variadic-function/c a))]
-          [else (pure (list 'variadic-function/c a b))])))
+  (do [sig <- (variadic-arrow-contract/p 0 0)]
+      (match-let ([(list a b) sig])
+        (cond [(andmap (curry eq? 'any/c)
+                       (list a b))
+               (pure 'variadic-function/c)]
+              [(eq? 'any/c b)
+               (pure (list 'variadic-function/c a))]
+              [else (pure (list 'variadic-function/c a b))]))))
 
 (define variadic-function/p
   (or/p (try/p variadic-binary-tail/p)

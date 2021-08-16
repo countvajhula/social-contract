@@ -185,6 +185,19 @@
                      '(blah 1 2)))
 
       (test-suite
+       "infix arrow contracts"
+       (check-equal? (translate (a . -> . b))
+                     '(function/c a b))
+       (check-equal? (translate (a b . -> . c))
+                     '(binary-function/c a b c))
+       (check-equal? (translate (a ... . -> . b))
+                     '(variadic-function/c a b))
+       (check-equal? (translate (a b ... . -> . c))
+                     '(variadic-function/c a b c))
+       (check-equal? (translate (a ... b . -> . c))
+                     '(variadic-function/c a (tail b) c)))
+
+      (test-suite
        "edge cases"
        (check-equal? (translate (-> (function/c number? string?) (sequenceof string?) (sequenceof number?)))
                      '(binary-function/c (function/c number? string?) (sequenceof string?) (sequenceof number?)))
