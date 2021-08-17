@@ -17,6 +17,6 @@
                      "cover-coveralls"
                      "sandbox-lib"
                      "adjutor"))
-(define pkg-desc "Common contracts.")
-(define version "0.0")
+(define pkg-desc "A high level collectively-defined DSL for describing contracts.")
+(define version "1.1")
 (define pkg-authors '(countvajhula))
