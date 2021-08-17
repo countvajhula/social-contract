@@ -46,8 +46,8 @@ ARROW
                   (token-LITERAL (read (open-input-string lexeme)))]
                  [(:+ content-character)
                   (token-IDENTIFIER (string->symbol lexeme))]
-                 [whitespace (void)] ; to e.g. use with apply-lexer from brag/support
-                 [(eof) eof]))
+                 [(eof) eof]  ; to e.g. use with apply-lexer from brag/support
+                 [whitespace (void)]))
 
 (define (lex str lexer)
   (let ([port (open-input-string str)])
