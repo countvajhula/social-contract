@@ -38,6 +38,17 @@
   (or/p (try/p free-maybe/p)
         (try/p reducible-maybe/p)))
 
+(define nonempty/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'and/c)
+    [a <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'not/c)
+    (identifier/p 'empty?)
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'nonempty/c a))))
+
 ;; note that we don't need to handle infix arrow contracts separately
 ;; because they get converted to prefix arrow form at the reader
 ;; level prior to evaluation
@@ -535,6 +546,7 @@
         (try/p decoder/p)
         (try/p hash-function/p)
         (try/p maybe/p)
+        (try/p nonempty/p)
         (try/p binary-composition/p)
         (try/p variadic-composition/p)
         (try/p classifier/p)

@@ -404,6 +404,15 @@
       (check-false ((maybe/c number?) "hi"))))
 
    (test-suite
+    "nonempty/c"
+    (test-case
+        "Basic"
+      (check-true ((nonempty/c string?) "hi"))
+      (check-true ((nonempty/c sequence?) "hi"))
+      (check-false ((nonempty/c list?) "hi"))
+      (check-false ((nonempty/c string?) 0))))
+
+   (test-suite
     "binary-composition/c"
     (test-case
         "Basic"

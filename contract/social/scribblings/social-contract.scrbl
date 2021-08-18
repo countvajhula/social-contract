@@ -5,16 +5,19 @@
          racket/sandbox
          @for-label[contract/social
                     contract/social/c3po
-                    (except-in racket predicate/c)
-                    (only-in data/collection sequenceof)]]
+                    (except-in racket predicate/c sequence? empty?)
+                    racket/undefined
+                    (only-in data/collection sequenceof sequence? empty?)]]
 
 @(define eval-for-docs
   (parameterize ([sandbox-output 'string]
                  [sandbox-error-output 'string]
                  [sandbox-memory-limit #f])
                  (make-evaluator 'racket/base
-                                 '(require racket/list
+                                 '(require (except-in racket/list empty?)
+                                           (only-in data/collection sequence? empty?)
                                            racket/function
+                                           racket/undefined
                                            (except-in racket/contract
                                                       predicate/c)
                                            contract/social
@@ -199,13 +202,29 @@ If the appropriate contract does not exist and you believe that the data you are
 @defform[(maybe/c type/c)]
 @defform[#:link-target? #f (maybe/c type/c default/c)]
 )]{
- A contract to recognize values that may or may not exist. Equivalent to @racket[(or/c type/c default/c)], with @racket[default/c] defaulting to @racket[#f] if left unspecified.
+ A contract to recognize values that may or may not exist. This contract is intended to be used in cases where the value, if missing, is a sentinel value indicating absence, such as @racket[#f], @racket[undefined], or @racket[(void)]. In cases where the value may simply be one or another type, use @racket[or/c] instead.
+
+ Equivalent to @racket[(or/c type/c default/c)], with @racket[default/c] defaulting to @racket[#f] if left unspecified.
 
 @examples[
     #:eval eval-for-docs
     (define/contract v (maybe/c number?) 5)
     (define/contract v (maybe/c number?) #f)
+    (define/contract v (maybe/c number? void?) (void))
     (eval:error (define/contract v (maybe/c number?) "5"))
+  ]
+}
+
+@defform[(nonempty/c type/c)]{
+ A contract to recognize nonempty sequences of type @racket[type/c]. Equivalent to @racket[(and/c type/c (not/c empty?))].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract v (nonempty/c list?) (list 1 2 3))
+    (define/contract v (nonempty/c string?) "hello")
+    (define/contract v (nonempty/c sequence?) "hello")
+    (eval:error (define/contract v (nonempty/c string?) ""))
+    (eval:error (define/contract v (nonempty/c list?) (list)))
   ]
 }
 

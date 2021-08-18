@@ -41,6 +41,7 @@ need to handle that in the parser for the new form.
         'decoder/c
         'hash-function/c
         'maybe/c
+        'nonempty/c
         'binary-composition/c
         'variadic-composition/c
         'classifier/c
@@ -57,6 +58,7 @@ need to handle that in the parser for the new form.
         'binary-function/c null
         'variadic-function/c null
         'maybe/c null
+        'nonempty/c null
         'binary-composition/c '(binary-function/c)
         'binary-constructor/c '(binary-function/c)
         'binary-predicate/c '(binary-function/c)

@@ -70,6 +70,12 @@
        (check-equal? (translate (or/c number? #f)) '(maybe/c number?)))
 
       (test-suite
+       "nonempty/c"
+       (check-equal? (translate (and/c list? (not/c empty?))) '(nonempty/c list?))
+       (check-equal? (translate (and/c string? (not/c empty?))) '(nonempty/c string?))
+       (check-equal? (translate (and/c (listof number?) (not/c empty?))) '(nonempty/c (listof number?))))
+
+      (test-suite
        "self-map/c"
        (check-equal? (translate (-> a a)) '(self-map/c a)))
 

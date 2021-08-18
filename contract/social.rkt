@@ -8,7 +8,8 @@
          (for-syntax racket/base)
          (only-in data/collection
                   sequenceof
-                  sequence?))
+                  sequence?
+                  empty?))
 
 (version-case
  [(version< (version) "7.9.0.22")
@@ -28,6 +29,7 @@
          decoder/c
          hash-function/c
          maybe/c
+         nonempty/c
          binary-composition/c
          variadic-composition/c
          binary-variadic-composition/c
@@ -116,6 +118,9 @@
 (define-syntax-parser maybe/c
   [(_ type/c default/c) #'(or/c type/c default/c)]
   [(_ type/c) #'(or/c type/c #f)])
+
+(define-syntax-parse-rule (nonempty/c type/c)
+  (and/c type/c (not/c empty?)))
 
 (define-syntax-parse-rule (binary-composition/c type/c)
   (binary-function/c type/c type/c type/c))
