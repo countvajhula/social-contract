@@ -21,7 +21,6 @@
          self-map/c
          binary-function/c
          variadic-function/c
-         binary-variadic-function/c
          predicate/c
          binary-predicate/c
          variadic-predicate/c
@@ -33,7 +32,6 @@
          nonempty/c
          binary-composition/c
          variadic-composition/c
-         binary-variadic-composition/c
          classifier/c
          map/c
          filter/c
@@ -44,7 +42,6 @@
 
 (define-syntax-parser function/c
   [(_ source/c target/c) #'(-> source/c target/c)]
-  [(_) #'(-> any/c any/c)] ; backwards compat - remove later
   [_:id #'(-> any/c any/c)])
 
 (define-syntax-parse-rule (self-map/c type/c)
@@ -52,14 +49,12 @@
 
 (define-syntax-parser thunk/c
   [(_ target/c) #'(-> target/c)]
-  [(_) #'(-> any/c)] ; backwards compat - remove later
   [_:id #'(-> any/c)])
 
 (define-syntax-parser binary-function/c
   [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
   [(_ type/c) #'(-> type/c type/c any/c)]
   [(_ type/c target/c) #'(-> type/c type/c target/c)]
-  [(_) #'(-> any/c any/c any/c)] ; backwards compat - remove later
   [_:id #'(-> any/c any/c any/c)])
 
 (define-syntax-parser variadic-function/c
@@ -75,26 +70,17 @@
   [(_ source/c)
    #:with ··· (quote-syntax ...)
    #'(-> source/c ··· any/c)]
-  [(_)
-   #:with ··· (quote-syntax ...) ; backwards compat - remove later
-   #'(-> any/c ··· any/c)]
   [_:id
    #:with ··· (quote-syntax ...)
    #'(-> any/c ··· any/c)])
 
-;; backwards compat
-(define-syntax-parse-rule (binary-variadic-function/c a/c b/c target/c)
-  (variadic-function/c a/c b/c target/c))
-
 (define-syntax-parser predicate/c
   [(_ on-type/c) #'(function/c on-type/c boolean?)]
-  [(_) #'(predicate/c any/c)] ; backwards compat - remove later
   [_:id #'(predicate/c any/c)])
 
 (define-syntax-parser binary-predicate/c
   [(_ a/c b/c) #'(binary-function/c a/c b/c boolean?)]
   [(_ on-type/c) #'(binary-predicate/c on-type/c on-type/c)]
-  [(_) #'(binary-predicate/c any/c)] ; backwards compat - remove later
   [_:id #'(binary-predicate/c any/c)])
 
 (define-syntax-parser variadic-predicate/c
@@ -103,7 +89,6 @@
   [(_ a/c b/c)
    #'(variadic-function/c a/c b/c boolean?)]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
-  [(_) #'(variadic-predicate/c any/c)] ; backwards compat - remove later
   [_:id #'(variadic-predicate/c any/c)])
 
 (define-syntax-parse-rule (encoder/c as-type/c)
@@ -116,7 +101,6 @@
   (function/c pure/c (functor/c pure/c)))
 
 (define-syntax-parser hash-function/c
-  [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
   [_:id #'(encoder/c fixnum?)])
 
 (define-syntax-parser maybe/c
@@ -133,15 +117,10 @@
   [(_ type/c) #'(variadic-function/c type/c type/c)]
   [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
 
-;; backwards compat
-(define-syntax-parse-rule (binary-variadic-composition/c type/c)
-  (variadic-composition/c type/c type/c))
-
 (define-syntax-parser classifier/c
   [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
                                       sequence?
                                       (sequenceof sequence?))]
-  [(_) #'(classifier/c any/c)] ; backward compat - remove later
   [_:id #'(classifier/c any/c)])
 
 (define-syntax-parser map/c
@@ -149,25 +128,21 @@
                                               (sequenceof source/c)
                                               (sequenceof target/c))]
   [(_ source/c) #'(map/c source/c source/c)]
-  [(_) #'(map/c any/c any/c)] ; backward compat - remove later
   [_:id #'(map/c any/c any/c)])
 
 (define-syntax-parser filter/c
   [(_ type/c) #'(binary-function/c (predicate/c type/c)
                                    (sequenceof type/c)
                                    (sequenceof type/c))]
-  [(_) #'(filter/c any/c)] ; backward compat - remove later
   [_:id #'(filter/c any/c)])
 
 (define-syntax-parser reducer/c
   [(_ type/c target/c) #'(function/c (sequenceof type/c)
                                      target/c)]
   [(_ type/c) #'(reducer/c type/c type/c)]
-  [(_) #'(reducer/c any/c)] ; backward compat - remove later
   [_:id #'(reducer/c any/c)])
 
 (define-syntax-parser functional/c
-  [(_) #'(self-map/c procedure?)] ; backward compat - remove later
   [_:id #'(self-map/c procedure?)])
 
 (define-syntax-parser binary-constructor/c
