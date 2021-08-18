@@ -20,6 +20,11 @@ help:
 	@echo "coverage-check - Run test coverage checker"
 	@echo "coverage-report - View test coverage report"
 	@echo "docs - view docs in a browser"
+	@echo "test-<module> - Run tests for <module>"
+	@echo "errortrace-<module> - Run tests for <module> with error tracing"
+	@echo "Modules:"
+	@echo "  contracts"
+	@echo "  c3po"
 
 # Primarily for use by CI.
 # Installs dependencies as well as linking this as a package.
@@ -61,8 +66,19 @@ check-deps:
 test:
 	raco test -x -p $(PACKAGE-NAME)
 
-test-with-errortrace:
-	racket -l errortrace -l racket -e '(require (submod "contract/social.rkt" test))'
+test-contracts:
+	raco test -x tests/contract/social/social-contract.rkt
+
+test-c3po:
+	raco test -x contract/social/c3po.rkt
+
+errortrace-contracts:
+	racket -l errortrace -l racket -e '(require (submod "tests/contract/social/social-contract.rkt" test))'
+
+errortrace-c3po:
+	racket -l errortrace -l racket -e '(require (submod "contract/social/c3po.rkt" test))'
+
+test-with-errortrace: errortrace-contracts errortrace-c3po
 
 errortrace: test-with-errortrace
 
@@ -80,4 +96,4 @@ cover: coverage-check coverage-report
 cover-coveralls:
 	raco cover -b -n dev -f coveralls -p $(PACKAGE-NAME)
 
-.PHONY:	help install remove build build-docs build-all clean check-deps test test-with-errortrace errortrace docs cover coverage-check coverage-report cover-coveralls
+.PHONY:	help install remove build build-docs build-all clean check-deps test test-contracts test-c3po errortrace-contracts errortrace-c3po test-with-errortrace errortrace docs cover coverage-check coverage-report cover-coveralls
