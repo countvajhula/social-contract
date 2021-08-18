@@ -198,6 +198,21 @@ If the appropriate contract does not exist and you believe that the data you are
 @racket[encoder/c] is equivalent to @racket[(-> any/c as-type/c)], @racket[decoder/c] is equivalent to @racket[(-> from-type/c any/c)], and @racket[hash-function/c] is equivalent to @racket[(-> any/c fixnum?)].
 }
 
+@defform[(lift/c pure/c functor/c)]{
+ A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof].
+
+ Equivalent to @racket[(-> pure/c (functor/c pure/c))].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (my-range n)
+      (lift/c number? listof)
+      (range n))
+    (my-range 5)
+    (eval:error (my-range "5"))
+  ]
+}
+
 @deftogether[(
 @defform[(maybe/c type/c)]
 @defform[#:link-target? #f (maybe/c type/c default/c)]

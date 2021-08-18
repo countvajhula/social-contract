@@ -39,6 +39,7 @@ need to handle that in the parser for the new form.
         'variadic-predicate/c
         'encoder/c
         'decoder/c
+        'lift/c
         'hash-function/c
         'maybe/c
         'nonempty/c
@@ -65,6 +66,7 @@ need to handle that in the parser for the new form.
         'classifier/c '(encoder/c binary-function/c)
         'decoder/c '(function/c)
         'encoder/c '(function/c)
+        'lift/c '(function/c)
         'filter/c '(predicate/c binary-function/c)
         'functional/c '(self-map/c)
         'hash-function/c '(encoder/c)

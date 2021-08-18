@@ -372,6 +372,22 @@
       (check-exn exn:fail:contract? (thunk (g)))))
 
    (test-suite
+    "lift/c"
+    (test-case
+        "Basic"
+      (define/contract (g v)
+        (lift/c number? listof)
+        (list v))
+      (check-equal? (g 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g "5"))))
+    (test-case
+        "Return value"
+      (define/contract (g v)
+        (lift/c number? listof)
+        (vector v))
+      (check-exn exn:fail:contract? (thunk (g 5)))))
+
+   (test-suite
     "hash-function/c"
     (test-case
         "Basic"

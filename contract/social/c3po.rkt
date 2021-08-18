@@ -112,6 +112,11 @@
        (check-equal? (translate (-> string? any/c)) '(decoder/c string?)))
 
       (test-suite
+       "lift/c"
+       (check-equal? (translate (-> number? (listof number?))) '(lift/c number? listof))
+       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number? sequenceof)))
+
+      (test-suite
        "hash-function/c"
        (check-equal? (translate (-> any/c fixnum?)) 'hash-function/c))
 

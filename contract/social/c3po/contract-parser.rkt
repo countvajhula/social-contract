@@ -117,6 +117,21 @@
                          (list "can't decode from any/c")))
         (pure (list 'decoder/c a)))))
 
+(define lift/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    (token/p 'OPEN-PAREN)
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a c)
+        (pure (list 'lift/c a b))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "parametric output contract doesn't match input"))))))
+
 (define hash-function/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'encoder/c)
@@ -544,6 +559,7 @@
         (try/p reducer/p)
         (try/p encoder/p)
         (try/p decoder/p)
+        (try/p lift/p)
         (try/p hash-function/p)
         (try/p maybe/p)
         (try/p nonempty/p)

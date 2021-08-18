@@ -27,6 +27,7 @@
          variadic-predicate/c
          encoder/c
          decoder/c
+         lift/c
          hash-function/c
          maybe/c
          nonempty/c
@@ -110,6 +111,9 @@
 
 (define-syntax-parse-rule (decoder/c from-type/c)
   (function/c from-type/c any/c))
+
+(define-syntax-parse-rule (lift/c pure/c functor/c)
+  (function/c pure/c (functor/c pure/c)))
 
 (define-syntax-parser hash-function/c
   [(_) #'(encoder/c fixnum?)] ; backwards compat - remove later
