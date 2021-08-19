@@ -50,6 +50,7 @@ need to handle that in the parser for the new form.
         'filter/c
         'reducer/c
         'functional/c
+        'parametrized-self-map/c
         'binary-constructor/c
         'variadic-constructor/c))
 
@@ -60,6 +61,7 @@ need to handle that in the parser for the new form.
         'variadic-function/c null
         'maybe/c null
         'nonempty/c null
+        'parametrized-self-map/c '(binary-function/c)
         'binary-composition/c '(binary-function/c)
         'binary-constructor/c '(binary-function/c)
         'binary-predicate/c '(binary-function/c)
@@ -67,7 +69,7 @@ need to handle that in the parser for the new form.
         'decoder/c '(function/c)
         'encoder/c '(function/c)
         'lift/c '(function/c)
-        'filter/c '(predicate/c binary-function/c)
+        'filter/c '(predicate/c parametrized-self-map/c)
         'functional/c '(self-map/c)
         'hash-function/c '(encoder/c)
         'map/c '(function/c binary-function/c)

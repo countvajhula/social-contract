@@ -11,9 +11,9 @@ Adding a New Contract
 
 5. Execute ``dependencies.rkt`` to get the fresh topological ordering of contracts -- this will help you modify the C3PO parser to handle the new contract correctly.
 
-6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser should be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
+6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser would typically be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
 
-7. Run the tests for C3PO and verify the new tests pass. Note that step 6 is a general guideline but there may be exceptions where your parser would not work when expressed in terms of preceding contracts -- see the ``filter/p`` parser for some clues if you encounter such a case.
+7. Run the tests for C3PO and verify that the new tests pass.
 
 Dev Workflow
 ============

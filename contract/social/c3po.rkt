@@ -131,9 +131,9 @@
        (check-equal? (translate (-> a ... a a)) '(variadic-composition/c a a)))
 
       (test-suite
-       "binary-constructor/c"
-       (check-equal? (translate (-> a b b)) '(binary-constructor/c a b))
-       (check-equal? (translate (-> b a b)) '(binary-constructor/c #:order 'bab a b)))
+       "parametrized-self-map/c"
+       (check-equal? (translate (-> a b b)) '(parametrized-self-map/c a b))
+       (check-equal? (translate (-> b a b)) '(parametrized-self-map/c #:order 'bab a b)))
 
       (test-suite
        "variadic-constructor/c"
@@ -238,9 +238,9 @@
        (check-equal? (translate (binary-function/c number? number? boolean?))
                      '(binary-predicate/c number?))
        (check-equal? (translate (binary-function/c number? list? list?))
-                     '(binary-constructor/c number? list?))
+                     '(parametrized-self-map/c number? list?))
        (check-equal? (translate (binary-function/c list? number? list?))
-                     '(binary-constructor/c #:order 'bab number? list?))
+                     '(parametrized-self-map/c #:order 'bab number? list?))
        (check-equal? (translate (variadic-function/c number? number?))
                      '(variadic-composition/c number?))
        (check-equal? (translate (variadic-function/c number? boolean?))

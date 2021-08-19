@@ -89,6 +89,24 @@ If the appropriate contract does not exist and you believe that the data you are
 }
 
 @deftogether[(
+@defform[(parametrized-self-map/c arg/c type/c)]
+@defform[#:link-target? #f (parametrized-self-map/c #:order order arg/c type/c)]
+)]{
+ Similar to @racket[self-map/c] but accepts one additional argument of type @racket[arg/c]. This contract is identical to @racket[binary-constructor/c] but should be favored in cases where the function doesn't entail a notion of "construction."
+
+  @racket[parametrized-self-map/c] is equivalent to @racket[(-> arg/c type/c type/c)] or @racket[(-> type/c arg/c type/c)], depending on the indicated @racket[order].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (prefix n str)
+      (parametrized-self-map/c natural-number/c string?)
+      (substring str 0 n))
+    (prefix 3 "apple")
+    (eval:error (prefix 3 (list 1 2 3 4 5)))
+  ]
+}
+
+@deftogether[(
 @defidform[thunk/c]
 @defform[#:link-target? #f
          (thunk/c target/c)]

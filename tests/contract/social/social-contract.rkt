@@ -552,11 +552,11 @@
       (check-exn exn:fail:contract? (thunk (g 5)))))
 
    (test-suite
-    "binary-constructor/c"
+    "parametrized-self-map/c"
     (test-case
         "Basic"
       (define/contract (g a b)
-        (binary-constructor/c number? list?)
+        (parametrized-self-map/c number? list?)
         (list 5))
       (check-equal? (g 5 (list 3)) (list 5))
       (check-exn exn:fail:contract? (thunk (g 5)))
@@ -564,13 +564,13 @@
     (test-case
         "Return value"
       (define/contract (g a b)
-        (binary-constructor/c number? list?)
+        (parametrized-self-map/c number? list?)
         5)
       (check-exn exn:fail:contract? (thunk (g 5 (list 4)))))
     (test-case
         "bab"
       (define/contract (g a b)
-        (binary-constructor/c #:order 'bab number? list?)
+        (parametrized-self-map/c #:order 'bab number? list?)
         (list 5))
       (check-equal? (g (list 3) 5) (list 5))
       (check-exn exn:fail:contract? (thunk (g (list 5))))

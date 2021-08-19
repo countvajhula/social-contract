@@ -203,19 +203,9 @@
   (or/p (try/p generic-map/p)
         (try/p specific-map/p)))
 
-;; filter depends on both binary-function as well as predicate
-;; while binary-constructor depends only on the former. As a result,
-;; by the time we're in a position to parse a filter, it has already
-;; been parsed as binary-constructor. Every filter has the signature
-;; of a constructor, so we just parse at that level here instead of
-;; at the level of binary-function
-;; Yet, the actual parsing in the social contract macro doesn't go via
-;; binary-constructor/c – this is a conscious choice since even though
-;; it would work because the signatures match, it is a different idea
-;; and there is no "construction" happening in a filter operation
 (define generic-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-constructor/c)
+      (identifier/p 'parametrized-self-map/c)
     (identifier/p 'predicate/c)
     generic-sequence/p
     (token/p 'CLOSE-PAREN)
@@ -223,7 +213,7 @@
 
 (define specific-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-constructor/c)
+      (identifier/p 'parametrized-self-map/c)
     (token/p 'OPEN-PAREN)
     (identifier/p 'predicate/c)
     [a <- contract/p]
@@ -369,7 +359,7 @@
   (or/p (try/p binary-composition-A/p)
         (try/p binary-composition-B/p)))
 
-(define binary-constructor/p
+(define parametrized-self-map/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     [a <- contract/p]
@@ -381,10 +371,10 @@
                             b
                             (list "contracts cannot all be the same")))]
           [(equal? a c)
-           (pure (list 'binary-constructor/c '#:order ''bab
+           (pure (list 'parametrized-self-map/c '#:order ''bab
                        b a))]
           [(equal? b c)
-           (pure (list 'binary-constructor/c a b))]
+           (pure (list 'parametrized-self-map/c a b))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
                                  b
                                  (list "output contract does not match unrepeated input contract")))])))
@@ -569,7 +559,7 @@
         (try/p map/p)
         (try/p filter/p)
         (try/p functional/p)
-        (try/p binary-constructor/p)
+        (try/p parametrized-self-map/p)
         (try/p variadic-constructor/p)
         (try/p named-contract-specification/p)))
 
