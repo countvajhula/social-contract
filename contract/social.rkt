@@ -42,38 +42,38 @@
          variadic-constructor/c)
 
 (define-syntax-parser function/c
-  [(_ source/c target/c) #'(-> source/c target/c)]
+  [(_ type/c ...) #'(-> type/c ...)]
   [_:id #'(-> any/c any/c)])
 
 (define-syntax-parse-rule (self-map/c type/c)
   (function/c type/c type/c))
 
 (define-syntax-parser thunk/c
-  [(_ target/c) #'(-> target/c)]
-  [_:id #'(-> any/c)])
+  [(_ target/c) #'(function/c target/c)]
+  [_:id #'(function/c any/c)])
 
 (define-syntax-parser binary-function/c
-  [(_ a/c b/c target/c) #'(-> a/c b/c target/c)]
-  [(_ type/c) #'(-> type/c type/c any/c)]
-  [(_ type/c target/c) #'(-> type/c type/c target/c)]
-  [_:id #'(-> any/c any/c any/c)])
+  [(_ a/c b/c target/c) #'(function/c a/c b/c target/c)]
+  [(_ type/c) #'(function/c type/c type/c any/c)]
+  [(_ type/c target/c) #'(function/c type/c type/c target/c)]
+  [_:id #'(function/c any/c any/c any/c)])
 
 (define-syntax-parser variadic-function/c
   [(_ a/c ((~datum tail) b/c) target/c)
    #:with ··· (quote-syntax ...)
-   #'(-> a/c ··· b/c target/c)]
+   #'(function/c a/c ··· b/c target/c)]
   [(_ a/c b/c target/c)
    #:with ··· (quote-syntax ...)
-   #'(-> a/c b/c ··· target/c)]
+   #'(function/c a/c b/c ··· target/c)]
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
-   #'(-> source/c ··· target/c)]
+   #'(function/c source/c ··· target/c)]
   [(_ source/c)
    #:with ··· (quote-syntax ...)
-   #'(-> source/c ··· any/c)]
+   #'(function/c source/c ··· any/c)]
   [_:id
    #:with ··· (quote-syntax ...)
-   #'(-> any/c ··· any/c)])
+   #'(function/c any/c ··· any/c)])
 
 (define-syntax-parser predicate/c
   [(_ on-type/c) #'(function/c on-type/c boolean?)]

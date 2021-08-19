@@ -14,6 +14,10 @@
 (define arrow/p
   (identifier/p '->))
 
+(define ellipsis/p
+  (do (token/p 'ELLIPSIS)
+      (pure '...)))
+
 ;; We prefer to reduce all contracts before going to next level
 ;; so that we don't need to retain lower-level special handling
 ;; at higher levels and can always assume the inputs are in
@@ -52,21 +56,42 @@
 ;; note that we don't need to handle infix arrow contracts separately
 ;; because they get converted to prefix arrow form at the reader
 ;; level prior to evaluation
-(define (arrow-contract/p n)
-  ;; n is the number of inputs -- the input arity
+(define function/p
   (do (token/p 'OPEN-PAREN)
       arrow/p
+    [doms <- (many/p
+              ;; parse all contracts except the last one
+              (do (try/p
+                   (lookahead/p (many/p #:min 2
+                                        (or/p (try/p contract/p)
+                                              (try/p ellipsis/p)))))
+                  (or/p (try/p contract/p)
+                        (try/p ellipsis/p))))]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (and (= 1 (length doms))
+             (eq? (first doms)
+                  'any/c)
+             (eq? target
+                  'any/c))
+        (pure 'function/c)
+        (pure (append (list 'function/c) doms (list target))))))
+
+(define (function-with-arity/p n)
+  ;; n is the number of inputs -- the input arity
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
     [doms <- (repeat/p n contract/p)]
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
     (pure (append doms (list target)))))
 
-(define (variadic-arrow-contract/p n-pre n-post)
+(define (variadic-function-with-arity/p n-pre n-post)
   ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
   ;; the variadic argument. n-post is the number of non-variadic inputs
   ;; following (and not including) the variadic argument
   (do (token/p 'OPEN-PAREN)
-      arrow/p
+      (identifier/p 'function/c)
     [pre-doms <- (repeat/p n-pre contract/p)]
     [var-dom <- contract/p]
     (token/p 'ELLIPSIS)
@@ -74,14 +99,6 @@
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
     (pure (append pre-doms (list var-dom) post-doms (list target)))))
-
-(define function/p
-  (do [sig <- (arrow-contract/p 1)]
-      (match-let ([(list a b) sig])
-        (if (and (eq? 'any/c a)
-                 (eq? 'any/c b))
-            (pure 'function/c)
-            (pure (list 'function/c a b))))))
 
 (define predicate/p
   (do (token/p 'OPEN-PAREN)
@@ -253,7 +270,7 @@
         (try/p specific-reducer/p)))
 
 (define thunk/p
-  (do [sig <- (arrow-contract/p 0)]
+  (do [sig <- (function-with-arity/p 0)]
       (match-let ([(list target) sig])
         (if (eq? 'any/c target)
             (pure 'thunk/c)
@@ -280,7 +297,7 @@
     (pure 'functional/c)))
 
 (define free-binary-function/p
-  (do [sig <- (arrow-contract/p 2)]
+  (do [sig <- (function-with-arity/p 2)]
       (match-let ([(list a b c) sig])
         (pure (list 'binary-function/c a b c)))))
 
@@ -416,17 +433,17 @@
         (try/p variadic-constructor-bab/p)))
 
 (define variadic-binary-tail/p
-  (do [sig <- (variadic-arrow-contract/p 0 1)]
+  (do [sig <- (variadic-function-with-arity/p 0 1)]
       (match-let ([(list a b c) sig])
         (pure (list 'variadic-function/c a (list 'tail b) c)))))
 
 (define variadic-binary/p
-  (do [sig <- (variadic-arrow-contract/p 1 0)]
+  (do [sig <- (variadic-function-with-arity/p 1 0)]
       (match-let ([(list a b c) sig])
         (pure (list 'variadic-function/c a b c)))))
 
 (define variadic-simple/p
-  (do [sig <- (variadic-arrow-contract/p 0 0)]
+  (do [sig <- (variadic-function-with-arity/p 0 0)]
       (match-let ([(list a b) sig])
         (cond [(andmap (curry eq? 'any/c)
                        (list a b))

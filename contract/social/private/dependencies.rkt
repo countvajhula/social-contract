@@ -56,9 +56,9 @@ need to handle that in the parser for the new form.
 
 (define ctc-graph
   (hash 'function/c null
-        'thunk/c null
-        'binary-function/c null
-        'variadic-function/c null
+        'thunk/c '(function/c)
+        'binary-function/c '(function/c)
+        'variadic-function/c '(function/c)
         'maybe/c null
         'nonempty/c null
         'parametrized-self-map/c '(binary-function/c)
@@ -79,6 +79,33 @@ need to handle that in the parser for the new form.
         'variadic-composition/c '(variadic-function/c)
         'variadic-constructor/c '(variadic-function/c)
         'variadic-predicate/c '(variadic-function/c)))
+
+(define (form-name form)
+  (cond [(eq? 'define-syntax-parser (first form))
+         (second form)]
+        [(eq? 'define-syntax-parse-rule (first form))
+         (first (second form))]))
+
+;; A helper to save us the trouble of visually parsing
+;; a contract form to spot its dependencies.
+;; Just pass the quoted form to get its
+;; dependencies (assuming `nodes` above is up to date)
+;; which can be entered into `ctc-graph`
+(define (form-dependencies form)
+  (let ([name (form-name form)]
+        [references (flatten form)])
+    (filter (λ (v) (not (or (void? v)
+                            (eq? name v))))
+            (for/list ([node nodes])
+              (when (index-of references node)
+                node)))))
+
+;; Handle a whole list of quoted forms at once
+;; returning a hash of form-name : dependencies
+(define (dependencies forms)
+  (for/hash ([form forms])
+    (values (form-name form)
+            (form-dependencies form))))
 
 (define neighbors
   (dict->procedure #:failure (const empty)
