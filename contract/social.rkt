@@ -21,6 +21,8 @@
          self-map/c
          binary-function/c
          variadic-function/c
+         operation/c
+         binary-operation/c
          predicate/c
          binary-predicate/c
          variadic-predicate/c
@@ -41,6 +43,12 @@
          binary-constructor/c
          variadic-constructor/c)
 
+(begin-for-syntax
+  (define (repeat n v)
+    (if (= 0 n)
+        null
+        (cons v (repeat (sub1 n) v)))))
+
 (define-syntax-parser function/c
   [(_ type/c ...) #'(-> type/c ...)]
   [_:id #'(-> any/c any/c)])
@@ -54,9 +62,20 @@
 
 (define-syntax-parser binary-function/c
   [(_ a/c b/c target/c) #'(function/c a/c b/c target/c)]
-  [(_ type/c) #'(function/c type/c type/c any/c)]
-  [(_ type/c target/c) #'(function/c type/c type/c target/c)]
   [_:id #'(function/c any/c any/c any/c)])
+
+(define-syntax-parser operation/c
+  [(_ n:number source/c target/c)
+   (datum->syntax this-syntax
+                  (append (list 'function/c)
+                          (repeat (syntax->datum #'n) #'source/c)
+                          (list #'target/c)))]
+  [(_ n:number source/c)
+   #'(operation/c n source/c any/c)])
+
+(define-syntax-parser binary-operation/c
+  [(_ source/c target/c) #'(binary-function/c source/c source/c target/c)]
+  [(_ source/c) #'(binary-operation/c source/c any/c)])
 
 (define-syntax-parser variadic-function/c
   [(_ a/c ((~datum tail) b/c) target/c)
@@ -112,7 +131,7 @@
   (and/c type/c (not/c empty?)))
 
 (define-syntax-parse-rule (binary-composition/c type/c)
-  (binary-function/c type/c type/c type/c))
+  (binary-operation/c type/c type/c))
 
 (define-syntax-parser variadic-composition/c
   [(_ type/c) #'(variadic-function/c type/c type/c)]

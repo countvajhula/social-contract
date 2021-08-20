@@ -34,6 +34,8 @@ need to handle that in the parser for the new form.
         'self-map/c
         'binary-function/c
         'variadic-function/c
+        'operation/c
+        'binary-operation/c
         'predicate/c
         'binary-predicate/c
         'variadic-predicate/c
@@ -59,10 +61,12 @@ need to handle that in the parser for the new form.
         'thunk/c '(function/c)
         'binary-function/c '(function/c)
         'variadic-function/c '(function/c)
+        'operation/c '(function/c)
+        'binary-operation/c '(binary-function/c)
         'maybe/c null
         'nonempty/c null
         'parametrized-self-map/c '(binary-function/c)
-        'binary-composition/c '(binary-function/c)
+        'binary-composition/c '(binary-operation/c)
         'binary-constructor/c '(binary-function/c)
         'binary-predicate/c '(binary-function/c)
         'classifier/c '(encoder/c binary-function/c)

@@ -138,22 +138,18 @@ If the appropriate contract does not exist and you believe that the data you are
 @deftogether[(
 @defidform[binary-function/c]
 @defform[#:link-target? #f
-         (binary-function/c source/c)]
-@defform[#:link-target? #f
-         (binary-function/c source/c target/c)]
-@defform[#:link-target? #f
          (binary-function/c a/c b/c target/c)]
 )]{
-  A contract to recognize a @hyperlink["https://en.wikipedia.org/wiki/Binary_function"]{binary function}, that is, a function taking two arguments. The arguments are expected to be of type @racket[a/c] and @racket[b/c], respectively, and the return value is expected to be of type @racket[target/c]. When the @racket[(binary-function/c source/c target/c)] form is used, the first contract is used for both of the inputs, while the second is used for the output. If a contract is left unspecified, @racket[any/c] is assumed. If none of the contracts are to be specified, the contract should be used in identifier form simply as @racket[binary-function/c].
+  A contract to recognize a @hyperlink["https://en.wikipedia.org/wiki/Binary_function"]{binary function}, that is, a function taking two arguments. The arguments are expected to be of type @racket[a/c] and @racket[b/c], respectively, and the return value is expected to be of type @racket[target/c]. If the contract is used in identifier form simply as @racket[binary-function/c], then the inputs and outputs default to @racket[any/c].
 
   @racket[binary-function/c] in general is equivalent to @racket[(-> a/c b/c target/c)].
 
-  Where applicable, prefer a more specific contract like @racket[binary-predicate/c], @racket[binary-composition/c], or @racket[binary-constructor/c].
+  Where applicable, prefer a more specific contract like @racket[binary-predicate/c], @racket[binary-operation/c], @racket[binary-composition/c], or @racket[binary-constructor/c].
 
 @examples[
     #:eval eval-for-docs
     (define/contract (my-add-as-string a b)
-      (binary-function/c number? string?)
+      (binary-function/c number? number? string?)
       (number->string (+ a b)))
     (my-add-as-string 3 5)
     (eval:error (my-add-as-string 5))
@@ -183,6 +179,30 @@ If the appropriate contract does not exist and you believe that the data you are
       (variadic-function/c number? string?)
       (number->string (apply + vs)))
     (my-add-as-string 3 5 7)
+  ]
+}
+
+@deftogether[(
+@defform[(operation/c n source/c target/c)]
+@defform[#:link-target? #f
+         (operation/c n source/c)]
+@defform[(binary-operation/c source/c target/c)]
+@defform[#:link-target? #f
+         (binary-operation/c source/c)]
+)]{
+  @racket[operation/c] is a contract to recognize an @racket[n]-ary @hyperlink["https://en.wikipedia.org/wiki/Homogeneous_relation"]{homogeneous} @hyperlink["https://en.wikipedia.org/wiki/Operation_(mathematics)"]{operation}, that is, a function taking @racket[n] arguments where each argument is of the same type. The inputs are expected to be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. When the @racket[(operator/c n source/c)] form is used, the output uses @racket[any/c]. @racket[operation/c] expects a @emph{specific} number of inputs. To recognize an arbitrary number of inputs, use @racket[variadic-function/c] instead.
+
+ @racket[binary-operation/c] recognizes an operation of arity @racket[2]. Note that the term "binary operation" isn't used consistently in mathematical literature, where it sometimes refers specifically to a @emph{closed} binary operation where the output is of the same type as the input. For this more specific case, use @racket[binary-composition/c] instead.
+
+  As an example, @racket[(operation/c 3 source/c target/c)] is equivalent to @racket[(-> source/c source/c source/c target/c)], while @racket[(binary-operation/c source/c target/c)] is equivalent to @racket[(-> source/c source/c target/c)].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (my-add-as-string a b)
+      (binary-operation/c number? string?)
+      (number->string (+ a b)))
+    (my-add-as-string 3 5)
+    (eval:error (my-add-as-string 5))
   ]
 }
 

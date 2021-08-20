@@ -141,20 +141,6 @@
       (check-equal? (g 2 -3) -6)
       (check-exn exn:fail:contract? (thunk (g -2 3))))
     (test-case
-        "input contracts"
-      (define/contract (g a b)
-        (binary-function/c positive?)
-        "hello")
-      (check-equal? (g 2 3) "hello")
-      (check-exn exn:fail:contract? (thunk (g -2 3))))
-    (test-case
-        "input and target contracts"
-      (define/contract (g a b)
-        (binary-function/c positive? string?)
-        "hello")
-      (check-equal? (g 2 3) "hello")
-      (check-exn exn:fail:contract? (thunk (g -2 3))))
-    (test-case
         "Return value"
       (define/contract (g a b)
         (binary-function/c positive? negative? negative?)
@@ -215,6 +201,73 @@
       (check-equal? (g 3 4 5 (list 1 2)) 5)
       (check-equal? (g (list 1 2)) 5)
       (check-exn exn:fail:contract? (thunk (g 5)))))
+
+   (test-suite
+    "operation/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (operation/c 2 positive? negative?)
+        (- (* a b)))
+      (check-equal? (g 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "input contracts"
+      (define/contract (g a b c)
+        (operation/c 3 positive?)
+        "hello")
+      (check-equal? (g 2 3 4) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3 4))))
+    (test-case
+        "input and target contracts"
+      (define/contract (g a b c)
+        (operation/c 3 positive? string?)
+        "hello")
+      (check-equal? (g 2 3 4) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3 4))))
+    (test-case
+        "Return value"
+      (define/contract (g a b)
+        (operation/c 2 positive? negative?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g 2 3))))
+    (test-case
+        "degenerate case"
+      (define/contract (g a)
+        (operation/c 1 positive? negative?)
+        (- a))
+      (check-equal? (g 3) -3)
+      (check-exn exn:fail:contract? (thunk (g -2)))))
+
+   (test-suite
+    "binary-operation/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (binary-operation/c positive? negative?)
+        (- (* a b)))
+      (check-equal? (g 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "input contracts"
+      (define/contract (g a b)
+        (binary-operation/c positive?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "input and target contracts"
+      (define/contract (g a b)
+        (binary-operation/c positive? string?)
+        "hello")
+      (check-equal? (g 2 3) "hello")
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "Return value"
+      (define/contract (g a b)
+        (binary-operation/c positive? negative?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g 2 3)))))
 
    (test-suite
     "predicate/c"

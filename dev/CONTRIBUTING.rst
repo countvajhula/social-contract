@@ -7,13 +7,19 @@ Adding a New Contract
 
 3. Add the contract to the list of ``nodes`` of the dependencies graph in ``contract/social/private/dependencies.rkt``, and also as a key in ``ctc-graph``. For every contract used in the new contract's definition (in ``contract/social.rkt``), add a corresponding entry in the values in ``ctc-graph`` for the new contract key.
 
-4. Add tests in ``contract/social/c3po.rkt`` to verify that the new contract can be parsed by C3PO from a representation in terms of Racket's built-in contract DSL. This test should fail initially since we haven't written the parser for it yet.
+4. Add tests in ``contract/social/c3po.rkt`` to verify that the new contract can be parsed by C3PO from a representation in terms of Racket's built-in contract DSL. These tests should fail initially since we haven't written the parser yet.
 
 5. Execute ``dependencies.rkt`` to get the fresh topological ordering of contracts -- this will help you modify the C3PO parser to handle the new contract correctly.
 
 6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser would typically be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
 
 7. Run the tests for C3PO and verify that the new tests pass.
+
+8. Are there any specific instances of higher-level contracts (i.e. those that appear near or after the new contract in the topological ordering) that ought to be simplified to this new contract? If so, add tests for such simplifications in ``contract/social/c3po.rkt`` (you'll find other tests for simplifications, as examples).
+
+9. Implement parsers for the new contract for the special cases in #8.
+
+10. Re-run tests and ensure they pass.
 
 Dev Workflow
 ============

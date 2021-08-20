@@ -7,7 +7,8 @@
          racket/function
          racket/match)
 
-(require "base-parsers.rkt")
+(require "base-parsers.rkt"
+         "private/util.rkt")
 
 (provide contract/p)
 
@@ -311,11 +312,6 @@
     (cond [(andmap (curry eq? 'any/c)
                    (list a b c))
            (pure 'binary-function/c)]
-          [(and (equal? a b)
-                (eq? 'any/c c))
-           (pure (list 'binary-function/c a))]
-          [(equal? a b)
-           (pure (list 'binary-function/c a c))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
                                  b
                                  (list "irreducible")))])))
@@ -326,7 +322,7 @@
 
 (define homogeneous-binary-predicate/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
+      (identifier/p 'binary-operation/c)
     [a <- contract/p]
     (identifier/p 'boolean?)
     (token/p 'CLOSE-PAREN)
@@ -347,9 +343,36 @@
   (or/p (try/p homogeneous-binary-predicate/p)
         (try/p heterogeneous-binary-predicate/p)))
 
-(define binary-composition-A/p
+(define binary-operation-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a b)
+        (if (eq? 'any/c c)
+            (pure (list 'binary-operation/c a))
+            (pure (list 'binary-operation/c a c)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         b
+                         (list "input contracts are not identical"))))))
+
+(define binary-operation-b/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'operation/c)
+    (literal/p '2)
+    [ctcs <- (many/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (pure (append (list 'binary-operation/c) ctcs))))
+
+(define binary-operation/p
+  (or/p (try/p binary-operation-a/p)
+        (try/p binary-operation-b/p)))
+
+(define binary-composition-typical/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-operation/c)
     [a <- contract/p]
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
@@ -359,22 +382,32 @@
                          b
                          (list "contracts are not identical"))))))
 
-(define binary-composition-B/p
+(define binary-composition-predicates/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
-    [a <- contract/p]
-    [b <- contract/p]
-    [c <- contract/p]
+      (identifier/p 'binary-predicate/c)
+    (identifier/p 'boolean?)
     (token/p 'CLOSE-PAREN)
-    (if (and (equal? a b) (equal? b c))
-        (pure (list 'binary-composition/c a))
-        (fail/p (message (srcloc #f #f #f #f #f)
-                         b
-                         (list "contracts are not identical"))))))
+    (pure (list 'binary-composition/c 'boolean?))))
 
 (define binary-composition/p
-  (or/p (try/p binary-composition-A/p)
-        (try/p binary-composition-B/p)))
+  (or/p (try/p binary-composition-typical/p)
+        (try/p binary-composition-predicates/p)))
+
+(define operation/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [doms <- (many/p #:min 2
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (all-equal? doms)
+        (if (eq? 'any/c target)
+            (pure (list 'operation/c (length doms) (first doms)))
+            (pure (list 'operation/c (length doms) (first doms) target)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         doms
+                         (list "input contracts are not identical"))))))
 
 (define parametrized-self-map/p
   (do (token/p 'OPEN-PAREN)
@@ -559,6 +592,8 @@
         (try/p thunk/p)
         (try/p self-map/p)
         (try/p binary-function/p)
+        (try/p binary-operation/p)
+        (try/p operation/p)
         (try/p variadic-function/p)
         (try/p predicate/p)
         (try/p binary-predicate/p)
