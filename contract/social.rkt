@@ -165,15 +165,22 @@
   [_:id #'(self-map/c procedure?)])
 
 (define-syntax-parser parametrized-self-map/c
+  [(_ (~seq #:order (~datum 'abb)) arg/c ... type/c)
+   #'(function/c arg/c ... type/c type/c)]
+  [(_ (~seq #:order (~datum 'bab)) arg/c ... type/c)
+   #'(function/c type/c arg/c ... type/c)]
+  [(_ arg/c ... type/c)
+   ;; default to abb order
+   #'(parametrized-self-map/c #:order 'abb arg/c ... type/c)])
+
+(define-syntax-parser binary-constructor/c
   [(_ (~seq #:order (~datum 'abb)) arg/c type/c)
-   #'(binary-function/c arg/c type/c type/c)]
+   #'(parametrized-self-map/c arg/c type/c)]
   [(_ (~seq #:order (~datum 'bab)) arg/c type/c)
-   #'(binary-function/c type/c arg/c type/c)]
+   #'(parametrized-self-map/c #:order 'bab arg/c type/c)]
   [(_ arg/c type/c)
    ;; default to abb order
-   #'(parametrized-self-map/c #:order 'abb arg/c type/c)])
-
-(define-alias binary-constructor/c parametrized-self-map/c)
+   #'(binary-constructor/c #:order 'abb arg/c type/c)])
 
 (define-syntax-parser variadic-constructor/c
   [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)

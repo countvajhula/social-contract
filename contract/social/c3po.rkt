@@ -142,7 +142,9 @@
       (test-suite
        "parametrized-self-map/c"
        (check-equal? (translate (-> a b b)) '(parametrized-self-map/c a b))
-       (check-equal? (translate (-> b a b)) '(parametrized-self-map/c #:order 'bab a b)))
+       (check-equal? (translate (-> b a b)) '(parametrized-self-map/c #:order 'bab a b))
+       (check-equal? (translate (-> a c b b)) '(parametrized-self-map/c a c b))
+       (check-equal? (translate (-> b a c b)) '(parametrized-self-map/c #:order 'bab a c b)))
 
       (test-suite
        "variadic-constructor/c"

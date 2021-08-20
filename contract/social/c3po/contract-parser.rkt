@@ -409,7 +409,35 @@
                          doms
                          (list "input contracts are not identical"))))))
 
-(define parametrized-self-map/p
+(define parametrized-self-map-general/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    [doms <- (many/p #:min 0
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [b <- contract/p]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (cond [(and (all-equal? (append (list a b target) doms)))
+           (fail/p (message (srcloc #f #f #f #f #f)
+                            b
+                            (list "contracts cannot all be the same")))]
+          [(equal? b target)
+           (pure (append (list 'parametrized-self-map/c)
+                         (list a)
+                         doms
+                         (list b)))]
+          [(equal? a target)
+           (pure (append (list 'parametrized-self-map/c '#:order ''bab)
+                         doms
+                         (list b)
+                         (list a)))]
+          [else (fail/p (message (srcloc #f #f #f #f #f)
+                                 b
+                                 (list "output contract does not match first or last input contract")))])))
+
+(define parametrized-self-map-binary/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     [a <- contract/p]
@@ -428,6 +456,10 @@
           [else (fail/p (message (srcloc #f #f #f #f #f)
                                  b
                                  (list "output contract does not match unrepeated input contract")))])))
+
+(define parametrized-self-map/p
+  (or/p (try/p parametrized-self-map-binary/p)
+        (try/p parametrized-self-map-general/p)))
 
 (define variadic-constructor-abb/p
   (do (token/p 'OPEN-PAREN)

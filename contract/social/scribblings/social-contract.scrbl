@@ -89,12 +89,12 @@ If the appropriate contract does not exist and you believe that the data you are
 }
 
 @deftogether[(
-@defform[(parametrized-self-map/c arg/c type/c)]
-@defform[#:link-target? #f (parametrized-self-map/c #:order order arg/c type/c)]
+@defform[(parametrized-self-map/c arg/c ... type/c)]
+@defform[#:link-target? #f (parametrized-self-map/c #:order order arg/c ... type/c)]
 )]{
- Similar to @racket[self-map/c] but accepts one additional argument of type @racket[arg/c]. This contract is identical to @racket[binary-constructor/c] but should be favored in cases where the function doesn't entail a notion of "construction."
+ Similar to @racket[self-map/c] but accepts any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying the @racket[arg/c]'s. In the case of a single additional argument, this contract is equivalent to @racket[binary-constructor/c], but in such cases this contract should be favored over that one if the function doesn't actually entail a notion of "construction."
 
-  @racket[parametrized-self-map/c] is equivalent to @racket[(-> arg/c type/c type/c)] or @racket[(-> type/c arg/c type/c)], depending on the indicated @racket[order].
+  As an example, when there are two additional arguments, @racket[parametrized-self-map/c] is equivalent to @racket[(-> arg1/c arg2/c type/c type/c)] or @racket[(-> type/c arg1/c arg2/c type/c)], depending on the indicated @racket[order].
 
 @examples[
     #:eval eval-for-docs

@@ -65,9 +65,9 @@ need to handle that in the parser for the new form.
         'binary-operation/c '(binary-function/c)
         'maybe/c null
         'nonempty/c null
-        'parametrized-self-map/c '(binary-function/c)
+        'parametrized-self-map/c '(function/c)
         'binary-composition/c '(binary-operation/c)
-        'binary-constructor/c '(binary-function/c)
+        'binary-constructor/c '(parametrized-self-map/c)
         'binary-predicate/c '(binary-function/c)
         'classifier/c '(encoder/c binary-function/c)
         'decoder/c '(function/c)
