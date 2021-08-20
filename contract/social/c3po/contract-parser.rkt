@@ -581,7 +581,7 @@
   ;; and even social contracts like (function/c integer? integer?)
   (do (token/p 'OPEN-PAREN)
       [name <- (identifier/p)]
-    [ctcs <- (many*/p contract/p)]
+    [ctcs <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (pure (list* name ctcs))))
 
@@ -619,10 +619,10 @@
   (do (token/p 'OPEN-PAREN)
       [arrowstar <- (identifier/p '->*)]
     (token/p 'OPEN-PAREN)
-    [required <- (many*/p contract/p)]
+    [required <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'OPEN-PAREN)
-    [optional <- (many*/p (or/p (try/p (keyword/p)) contract/p))]
+    [optional <- (many/p (or/p (try/p (keyword/p)) contract/p))]
     (token/p 'CLOSE-PAREN)
     [output <- contract/p]
     (token/p 'CLOSE-PAREN)
@@ -632,10 +632,10 @@
   (do (token/p 'OPEN-PAREN)
       [arrowstar <- (identifier/p '->*)]
     (token/p 'OPEN-PAREN)
-    [required <- (many*/p contract/p)]
+    [required <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'OPEN-PAREN)
-    [optional <- (many*/p (or/p (try/p (keyword/p)) contract/p))]
+    [optional <- (many/p (or/p (try/p (keyword/p)) contract/p))]
     (token/p 'CLOSE-PAREN)
     (keyword/p '#:rest)
     [rest-ctc <- contract/p]

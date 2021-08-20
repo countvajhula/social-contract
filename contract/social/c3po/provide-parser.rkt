@@ -22,14 +22,14 @@
 (define contract-out/p
   (do (token/p 'OPEN-PAREN)
       [form-name <- (identifier/p 'contract-out)]
-    [a <- (many*/p contracted-function/p)]
+    [a <- (many/p contracted-function/p)]
     (token/p 'CLOSE-PAREN)
     (pure (list* form-name a))))
 
 (define provide/p
   (do (token/p 'OPEN-PAREN)
       [form-name <- (identifier/p 'provide)]
-    [as <- (many*/p
+    [as <- (many/p
             (or/p (try/p contract-out/p)
                   symex/p))]
     (token/p 'CLOSE-PAREN)

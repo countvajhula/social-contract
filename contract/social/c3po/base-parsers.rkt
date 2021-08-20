@@ -31,7 +31,7 @@
 
 (define form/p
   (do (token/p 'OPEN-PAREN)
-      [a <- (many*/p symex/p)]
+      [a <- (many/p symex/p)]
     (token/p 'CLOSE-PAREN)
     (pure a)))
 
