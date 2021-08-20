@@ -282,13 +282,14 @@ If the appropriate contract does not exist and you believe that the data you are
 }
 
 @deftogether[(
+@defform[(composition/c n type/c)]
 @defform[(binary-composition/c type/c)]
 @defform[(variadic-composition/c type/c)]
 @defform[#:link-target? #f (variadic-composition/c type/c type/c)]
 )]{
-  Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts expect the input types and the output type to match, i.e. they recognize functions that @emph{compose} values of some type.
+  Similar to @racket[operation/c], @racket[binary-function/c] and @racket[variadic-function/c], but these contracts expect the input types and the output type to match, i.e. they recognize functions that @emph{compose} values of some type.
 
-  @racket[binary-composition/c] is equivalent to @racket[(-> type/c type/c type/c)], and @racket[variadic-composition/c] is equivalent to @racket[(-> type/c ... type/c)].
+  @racket[binary-composition/c] is equivalent to @racket[(-> type/c type/c type/c)]; @racket[variadic-composition/c] is equivalent to @racket[(-> type/c ... type/c)]; and for instance, @racket[(composition/c 3 type/c)] is equivalent to @racket[(-> type/c type/c type/c type/c)].
 }
 
 @deftogether[(

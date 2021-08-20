@@ -130,6 +130,11 @@
        (check-equal? (translate (-> any/c fixnum?)) 'hash-function/c))
 
       (test-suite
+       "composition/c"
+       (check-equal? (translate (-> a a a a)) '(composition/c 3 a))
+       (check-equal? (translate (-> a a a a a)) '(composition/c 4 a)))
+
+      (test-suite
        "binary-composition/c"
        (check-equal? (translate (-> a a a)) '(binary-composition/c a)))
 
@@ -258,6 +263,10 @@
                      '(binary-composition/c boolean?))
        (check-equal? (translate (operation/c 2 number? list?))
                      '(binary-operation/c number? list?))
+       (check-equal? (translate (operation/c 3 number? number?))
+                     '(composition/c 3 number?))
+       (check-equal? (translate (operation/c 2 number? number?))
+                     '(binary-composition/c number?))
        (check-equal? (translate (variadic-function/c number? number?))
                      '(variadic-composition/c number?))
        (check-equal? (translate (variadic-function/c number? boolean?))

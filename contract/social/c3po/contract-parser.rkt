@@ -361,7 +361,7 @@
 (define binary-operation-b/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'operation/c)
-    (literal/p '2)
+    (number/p 2)
     [ctcs <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (pure (append (list 'binary-operation/c) ctcs))))
@@ -408,6 +408,19 @@
         (fail/p (message (srcloc #f #f #f #f #f)
                          doms
                          (list "input contracts are not identical"))))))
+
+(define composition/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'operation/c)
+    [n <- (number/p)]
+    [source <- contract/p]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? source target)
+        (pure (list 'composition/c n source))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         (list source target)
+                         (list "input and output contracts are not identical"))))))
 
 (define parametrized-self-map-general/p
   (do (token/p 'OPEN-PAREN)
@@ -626,6 +639,7 @@
         (try/p binary-function/p)
         (try/p binary-operation/p)
         (try/p operation/p)
+        (try/p composition/p)
         (try/p variadic-function/p)
         (try/p predicate/p)
         (try/p binary-predicate/p)

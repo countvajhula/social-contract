@@ -8,6 +8,7 @@
 (provide identifier/p
          literal/p
          keyword/p
+         number/p
          form/p
          symex/p)
 
@@ -28,6 +29,13 @@
            (λ (result)
              (or (not name)
                  (eq? name result)))))
+
+(define (number/p [n #f])
+  (guard/p (literal/p)
+           (λ (result)
+             (and (number? result)
+                  (or (not n)
+                      (= n result))))))
 
 (define form/p
   (do (token/p 'OPEN-PAREN)

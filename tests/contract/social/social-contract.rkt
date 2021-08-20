@@ -423,6 +423,36 @@
       (check-false ((nonempty/c string?) 0))))
 
    (test-suite
+    "composition/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (composition/c 2 positive?)
+        (* a b))
+      (check-equal? (g 2 3) 6)
+      (check-exn exn:fail:contract? (thunk (g -2 3))))
+    (test-case
+        "Basic - 3 args"
+      (define/contract (g a b c)
+        (composition/c 3 positive?)
+        (* a b c))
+      (check-equal? (g 1 2 3) 6)
+      (check-exn exn:fail:contract? (thunk (g 1 -2 3))))
+    (test-case
+        "Return value"
+      (define/contract (g a b c)
+        (composition/c 3 positive?)
+        -5)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4))))
+    (test-case
+        "degenerate case"
+      (define/contract (g a)
+        (composition/c 1 positive?)
+        a)
+      (check-equal? (g 3) 3)
+      (check-exn exn:fail:contract? (thunk (g -2)))))
+
+   (test-suite
     "binary-composition/c"
     (test-case
         "Basic"

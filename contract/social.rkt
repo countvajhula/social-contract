@@ -32,6 +32,7 @@
          hash-function/c
          maybe/c
          nonempty/c
+         composition/c
          binary-composition/c
          variadic-composition/c
          classifier/c
@@ -129,6 +130,13 @@
 
 (define-syntax-parse-rule (nonempty/c type/c)
   (and/c type/c (not/c empty?)))
+
+(define-syntax-parser composition/c
+  [(_ n:number type/c)
+   (datum->syntax this-syntax
+                  (append (list 'operation/c)
+                          (list #'n)
+                          (list #'type/c #'type/c)))])
 
 (define-syntax-parse-rule (binary-composition/c type/c)
   (binary-operation/c type/c type/c))
