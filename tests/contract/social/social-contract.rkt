@@ -74,7 +74,7 @@
     )
 
    (test-suite
-    "self-map"
+    "self-map/c"
     (test-case
         "Basic"
       (define/contract (g n)
@@ -95,6 +95,49 @@
         0)
       (check-equal? (g 5) 0)
       (check-equal? (g "hello") 0)))
+
+   (test-suite
+    "parametrized self-map/c"
+    (test-case
+        "Basic"
+      (define/contract (g a b)
+        (self-map/c list? (head number?))
+        (list 5))
+      (check-equal? (g 5 (list 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (check-exn exn:fail:contract? (thunk (g 5 6))))
+    (test-case
+        "Return value"
+      (define/contract (g a b)
+        (self-map/c list? (head number?))
+        5)
+      (check-exn exn:fail:contract? (thunk (g 5 (list 4)))))
+    (test-case
+        "bab"
+      (define/contract (g a b)
+        (self-map/c list? (tail number?))
+        (list 5))
+      (check-equal? (g (list 3) 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list 5))))
+      (check-exn exn:fail:contract? (thunk (g (list 5) (list 6)))))
+    (test-case
+        "More arguments"
+      (define/contract (g a b c)
+        (self-map/c list? (head number? string?))
+        (list 5))
+      (check-equal? (g 5 "5" (list 3)) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5 5 (list 3))))
+      (check-exn exn:fail:contract? (thunk (g 5 "5" 5)))
+      (check-exn exn:fail:contract? (thunk (g (list 3) 5 "5"))))
+    (test-case
+        "More arguments - bab"
+      (define/contract (g a b c)
+        (self-map/c list? (tail number? string?))
+        (list 5))
+      (check-equal? (g (list 3) 5 "5") (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list 3) 5 5)))
+      (check-exn exn:fail:contract? (thunk (g 5 "5" 5)))
+      (check-exn exn:fail:contract? (thunk (g 5 "5" (list 3))))))
 
    (test-suite
     "thunk/c"
@@ -646,49 +689,6 @@
         add1)
       (check-equal? (g sqrt) add1)
       (check-exn exn:fail:contract? (thunk (g 5)))))
-
-   (test-suite
-    "parametrized-self-map/c"
-    (test-case
-        "Basic"
-      (define/contract (g a b)
-        (parametrized-self-map/c number? list?)
-        (list 5))
-      (check-equal? (g 5 (list 3)) (list 5))
-      (check-exn exn:fail:contract? (thunk (g 5)))
-      (check-exn exn:fail:contract? (thunk (g 5 6))))
-    (test-case
-        "Return value"
-      (define/contract (g a b)
-        (parametrized-self-map/c number? list?)
-        5)
-      (check-exn exn:fail:contract? (thunk (g 5 (list 4)))))
-    (test-case
-        "bab"
-      (define/contract (g a b)
-        (parametrized-self-map/c #:order 'bab number? list?)
-        (list 5))
-      (check-equal? (g (list 3) 5) (list 5))
-      (check-exn exn:fail:contract? (thunk (g (list 5))))
-      (check-exn exn:fail:contract? (thunk (g (list 5) (list 6)))))
-    (test-case
-        "More arguments"
-      (define/contract (g a b c)
-        (parametrized-self-map/c number? string? list?)
-        (list 5))
-      (check-equal? (g 5 "5" (list 3)) (list 5))
-      (check-exn exn:fail:contract? (thunk (g 5 5 (list 3))))
-      (check-exn exn:fail:contract? (thunk (g 5 "5" 5)))
-      (check-exn exn:fail:contract? (thunk (g (list 3) 5 "5"))))
-    (test-case
-        "More arguments - bab"
-      (define/contract (g a b c)
-        (parametrized-self-map/c #:order 'bab number? string? list?)
-        (list 5))
-      (check-equal? (g (list 3) 5 "5") (list 5))
-      (check-exn exn:fail:contract? (thunk (g (list 3) 5 5)))
-      (check-exn exn:fail:contract? (thunk (g 5 "5" 5)))
-      (check-exn exn:fail:contract? (thunk (g 5 "5" (list 3))))))
 
    (test-suite
     "binary-constructor/c"

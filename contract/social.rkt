@@ -40,7 +40,6 @@
          filter/c
          reducer/c
          functional/c
-         parametrized-self-map/c
          binary-constructor/c
          variadic-constructor/c)
 
@@ -54,8 +53,13 @@
   [(_ type/c ...) #'(-> type/c ...)]
   [_:id #'(-> any/c any/c)])
 
-(define-syntax-parse-rule (self-map/c type/c)
-  (function/c type/c type/c))
+(define-syntax-parser self-map/c
+  [(_ type/c ((~datum head) arg/c ...))
+   #'(function/c arg/c ... type/c type/c)]
+  [(_ type/c ((~datum tail) arg/c ...))
+   #'(function/c type/c arg/c ... type/c)]
+  [(_ type/c)
+   #'(function/c type/c type/c)])
 
 (define-syntax-parser thunk/c
   [(_ target/c) #'(function/c target/c)]
@@ -159,8 +163,8 @@
   [_:id #'(map/c any/c any/c)])
 
 (define-syntax-parser filter/c
-  [(_ type/c) #'(parametrized-self-map/c (predicate/c type/c)
-                                         (sequenceof type/c))]
+  [(_ type/c) #'(self-map/c (sequenceof type/c)
+                            (head (predicate/c type/c)))]
   [_:id #'(filter/c any/c)])
 
 (define-syntax-parser reducer/c
@@ -172,20 +176,11 @@
 (define-syntax-parser functional/c
   [_:id #'(self-map/c procedure?)])
 
-(define-syntax-parser parametrized-self-map/c
-  [(_ (~seq #:order (~datum 'abb)) arg/c ... type/c)
-   #'(function/c arg/c ... type/c type/c)]
-  [(_ (~seq #:order (~datum 'bab)) arg/c ... type/c)
-   #'(function/c type/c arg/c ... type/c)]
-  [(_ arg/c ... type/c)
-   ;; default to abb order
-   #'(parametrized-self-map/c #:order 'abb arg/c ... type/c)])
-
 (define-syntax-parser binary-constructor/c
   [(_ (~seq #:order (~datum 'abb)) arg/c type/c)
-   #'(parametrized-self-map/c arg/c type/c)]
+   #'(self-map/c type/c (head arg/c))]
   [(_ (~seq #:order (~datum 'bab)) arg/c type/c)
-   #'(parametrized-self-map/c #:order 'bab arg/c type/c)]
+   #'(self-map/c type/c (tail arg/c))]
   [(_ arg/c type/c)
    ;; default to abb order
    #'(binary-constructor/c #:order 'abb arg/c type/c)])

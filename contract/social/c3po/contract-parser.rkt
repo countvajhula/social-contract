@@ -201,6 +201,18 @@
     (token/p 'CLOSE-PAREN)
     (pure 'map/c)))
 
+(define generic-self-map/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'self-map/c)
+    (or/p (try/p generic-sequence/p)
+          (try/p (parametric-sequence/p (identifier/p 'any/c))))
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    (identifier/p 'function/c)
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (pure 'map/c)))
+
 (define specific-map/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
@@ -222,24 +234,31 @@
 
 (define map/p
   (or/p (try/p generic-map/p)
+        (try/p generic-self-map/p)
         (try/p specific-map/p)))
 
 (define generic-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'parametrized-self-map/c)
-    (identifier/p 'predicate/c)
+      (identifier/p 'self-map/c)
     generic-sequence/p
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    (identifier/p 'predicate/c)
+    (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (pure 'filter/c)))
 
 (define specific-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'parametrized-self-map/c)
+      (identifier/p 'self-map/c)
+    [b <- (parametric-sequence/p)]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
     (token/p 'OPEN-PAREN)
     (identifier/p 'predicate/c)
     [a <- contract/p]
     (token/p 'CLOSE-PAREN)
-    [b <- (parametric-sequence/p)]
+    (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (if (equal? a (second b))
         (pure (list 'filter/c a))
@@ -280,7 +299,7 @@
             (pure 'thunk/c)
             (pure (list 'thunk/c target))))))
 
-(define self-map/p
+(define self-map-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
     [a <- contract/p]
@@ -292,6 +311,52 @@
         (fail/p (message (srcloc #f #f #f #f #f)
                          b
                          (list "identical contracts"))))))
+
+(define parametrized-self-map-general/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    [doms <- (many/p #:min 0
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [b <- contract/p]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (cond [(and (all-equal? (append (list a b target) doms)))
+           (fail/p (message (srcloc #f #f #f #f #f)
+                            b
+                            (list "contracts cannot all be the same")))]
+          [(equal? b target)
+           (pure (list 'self-map/c target (list* 'head a doms)))]
+          [(equal? a target)
+           (pure (list 'self-map/c target (list* 'tail (append doms (list b)))))]
+          [else (fail/p (message (srcloc #f #f #f #f #f)
+                                 b
+                                 (list "output contract does not match first or last input contract")))])))
+
+(define parametrized-self-map-binary/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (cond [(and (equal? a b) (equal? b c))
+           (fail/p (message (srcloc #f #f #f #f #f)
+                            b
+                            (list "contracts cannot all be the same")))]
+          [(equal? a c)
+           (pure (list 'self-map/c a (list 'tail b)))]
+          [(equal? b c)
+           (pure (list 'self-map/c b (list 'head a)))]
+          [else (fail/p (message (srcloc #f #f #f #f #f)
+                                 b
+                                 (list "output contract does not match unrepeated input contract")))])))
+
+(define self-map/p
+  (or/p (try/p self-map-simple/p)
+        (try/p parametrized-self-map-general/p)
+        (try/p parametrized-self-map-binary/p)))
 
 (define functional/p
   (do (token/p 'OPEN-PAREN)
@@ -424,58 +489,6 @@
         (fail/p (message (srcloc #f #f #f #f #f)
                          (list source target)
                          (list "input and output contracts are not identical"))))))
-
-(define parametrized-self-map-general/p
-  (do (token/p 'OPEN-PAREN)
-      (identifier/p 'function/c)
-    [a <- contract/p]
-    [doms <- (many/p #:min 0
-                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
-                         contract/p))]
-    [b <- contract/p]
-    [target <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (cond [(and (all-equal? (append (list a b target) doms)))
-           (fail/p (message (srcloc #f #f #f #f #f)
-                            b
-                            (list "contracts cannot all be the same")))]
-          [(equal? b target)
-           (pure (append (list 'parametrized-self-map/c)
-                         (list a)
-                         doms
-                         (list b)))]
-          [(equal? a target)
-           (pure (append (list 'parametrized-self-map/c '#:order ''bab)
-                         doms
-                         (list b)
-                         (list a)))]
-          [else (fail/p (message (srcloc #f #f #f #f #f)
-                                 b
-                                 (list "output contract does not match first or last input contract")))])))
-
-(define parametrized-self-map-binary/p
-  (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
-    [a <- contract/p]
-    [b <- contract/p]
-    [c <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (cond [(and (equal? a b) (equal? b c))
-           (fail/p (message (srcloc #f #f #f #f #f)
-                            b
-                            (list "contracts cannot all be the same")))]
-          [(equal? a c)
-           (pure (list 'parametrized-self-map/c '#:order ''bab
-                       b a))]
-          [(equal? b c)
-           (pure (list 'parametrized-self-map/c a b))]
-          [else (fail/p (message (srcloc #f #f #f #f #f)
-                                 b
-                                 (list "output contract does not match unrepeated input contract")))])))
-
-(define parametrized-self-map/p
-  (or/p (try/p parametrized-self-map-binary/p)
-        (try/p parametrized-self-map-general/p)))
 
 (define variadic-constructor-abb/p
   (do (token/p 'OPEN-PAREN)
@@ -691,7 +704,6 @@
         (try/p map/p)
         (try/p filter/p)
         (try/p functional/p)
-        (try/p parametrized-self-map/p)
         (try/p variadic-constructor/p)
         (try/p named-contract-specification/p)))
 

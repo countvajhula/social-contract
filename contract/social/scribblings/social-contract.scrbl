@@ -75,10 +75,15 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
   ]
 }
 
-@defform[(self-map/c type/c)]{
- A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type.
+@deftogether[(
+@defform[(self-map/c type/c)]
+@defform/subs[#:link-target? #f (self-map/c type/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
+)]{
+ A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type. It could also optionally accept any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying a @racket[paramspec] form, in which the signifier @racket[head] means that these arguments appear before @racket[type/c] in the function signature, while @racket[tail] means that they appear after @racket[type/c].
 
- @racket[self-map/c] is equivalent to @racket[(-> type/c type/c)].
+ @racket[self-map/c] is equivalent to @racket[(-> type/c type/c)], and for instance, @racket[(self-map/c list? (head number?))] is equivalent to @racket[(-> number? list? list?)].
 
 @examples[
     #:eval eval-for-docs
@@ -87,24 +92,12 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
       (* n 2))
     (double 5)
     (eval:error (double "hello"))
-  ]
-}
 
-@deftogether[(
-@defform[(parametrized-self-map/c arg/c ... type/c)]
-@defform[#:link-target? #f (parametrized-self-map/c #:order order arg/c ... type/c)]
-)]{
- Similar to @racket[self-map/c] but accepts any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying the @racket[arg/c]'s. In the case of a single additional argument, this contract is equivalent to @racket[binary-constructor/c], but in such cases this contract should be favored over that one if the function doesn't actually entail a notion of "construction."
-
-  As an example, when there are two additional arguments, @racket[parametrized-self-map/c] is equivalent to @racket[(-> arg1/c arg2/c type/c type/c)] or @racket[(-> type/c arg1/c arg2/c type/c)], depending on the indicated @racket[order].
-
-@examples[
-    #:eval eval-for-docs
-    (define/contract (prefix n str)
-      (parametrized-self-map/c natural-number/c string?)
+    (define/contract (prefix str n)
+      (self-map/c string? (tail natural-number/c))
       (substring str 0 n))
-    (prefix 3 "apple")
-    (eval:error (prefix 3 (list 1 2 3 4 5)))
+    (prefix "apple" 3)
+    (eval:error (prefix (list 1 2 3 4 5) 3))
   ]
 }
 
@@ -302,7 +295,9 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 )]{
   Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type incorporating the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs. Note that the @racket[order] parameter controls the order in which the @emph{contracted function} expects arguments, not the present forms. That is, regardless of the order specified using @racket[order], the first argument to these contract forms is always @racket[primitive/c], and the second argument is always @racket[composite/c].
 
-  @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
+ This contract is equivalent to @racket[self-map/c] when the latter expects a single additional argument, and in such cases the appropriate contract should be selected based on whether the function actually entails a notion of "construction" or not.
+
+ @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
 
 @examples[
     #:eval eval-for-docs
