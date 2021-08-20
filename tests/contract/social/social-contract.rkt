@@ -285,7 +285,20 @@
         #t)
       (check-true (g 5))
       (check-true (g null))
-      (check-exn exn:fail:contract? (thunk (g)))))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "More arguments"
+      (define/contract (g . as)
+        (predicate/c number? string?)
+        #t)
+      (check-true (g 5 "5"))
+      (check-exn exn:fail:contract? (thunk (g 5 5))))
+    (test-case
+        "Return value"
+      (define/contract (g . as)
+        (predicate/c number?)
+        5)
+      (check-exn exn:fail:contract? (thunk (g 5)))))
 
    (test-suite
     "binary-predicate/c"

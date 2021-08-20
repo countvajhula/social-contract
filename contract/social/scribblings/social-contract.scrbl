@@ -55,11 +55,13 @@ If the appropriate contract does not exist and you believe that the data you are
 @deftogether[(
 @defidform[function/c]
 @defform[#:link-target? #f
-         (function/c source/c target/c)]
+         (function/c source/c ... target/c)]
 )]{
- A contract to recognize a simple function that maps values of type @racket[source/c] to values of type @racket[target/c] (i.e. a unary function). If @racket[target/c] is expecting a value of the same type as @racket[source/c], prefer using @racket[self-map/c] instead. If left unspecified, @racket[source/c] and @racket[target/c] assume @racket[any/c], and in this case, this form must be used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier macro}, i.e. simply as @racket[function/c] rather than as @racket[(function/c)].
+A contract to recognize any function. This is the most general function contract and should be a last resort, to be employed only if a more specific contract is not available or appropriate. For instance, if the concerned function is a unary function and @racket[target/c] is expecting a value of the same type as @racket[source/c], prefer using @racket[self-map/c] instead. Likewise, each of the various function contracts in this module exploits some non-trivial relationship between the contracts specifying the function, and depending on the case, it may be appropriate to use a @racketlink[predicate/c]{predicate} contract, or an @racketlink[operation/c]{operation}, or @racketlink[composition/c]{composition}, and so on.
 
-@racket[function/c] in general is equivalent to @racket[(-> source/c target/c)].
+If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier macro}, @racket[function/c] means a unary function with input and output of type @racket[any/c].
+
+@racket[function/c] in general is equivalent to @racket[->].
 
 @examples[
     #:eval eval-for-docs

@@ -95,6 +95,7 @@
       (test-suite
        "predicate/c"
        (check-equal? (translate (-> a boolean?)) '(predicate/c a))
+       (check-equal? (translate (-> a b c boolean?)) '(predicate/c a b c))
        (check-equal? (translate (-> any/c boolean?)) 'predicate/c))
 
       (test-suite
@@ -259,6 +260,8 @@
                      '(parametrized-self-map/c #:order 'bab number? list?))
        (check-equal? (translate (binary-operation/c number? boolean?))
                      '(binary-predicate/c number?))
+       (check-equal? (translate (predicate/c number? ...))
+                     '(variadic-predicate/c number?))
        (check-equal? (translate (binary-operation/c boolean? boolean?))
                      '(binary-composition/c boolean?))
        (check-equal? (translate (operation/c 2 number? list?))

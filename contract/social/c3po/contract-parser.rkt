@@ -104,12 +104,15 @@
 (define predicate/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
-    [a <- contract/p]
+    [doms <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
     (identifier/p 'boolean?)
     (token/p 'CLOSE-PAREN)
-    (if (eq? 'any/c a)
+    (if (and (= 1 (length doms))
+             (eq? 'any/c (first doms)))
         (pure 'predicate/c)
-        (pure (list 'predicate/c a)))))
+        (pure (append (list 'predicate/c) doms)))))
 
 (define encoder/p
   (do (token/p 'OPEN-PAREN)
@@ -535,7 +538,7 @@
         (try/p variadic-binary/p)
         (try/p variadic-simple/p)))
 
-(define variadic-binary-predicate-tail/p
+(define variadic-binary-predicate-tail-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
@@ -547,7 +550,16 @@
     (token/p 'CLOSE-PAREN)
     (pure (list 'variadic-predicate/c a (list 'tail b)))))
 
-(define variadic-binary-predicate/p
+(define variadic-binary-predicate-tail-b/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'predicate/c)
+    [a <- contract/p]
+    (token/p 'ELLIPSIS)
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'variadic-predicate/c a (list 'tail b)))))
+
+(define variadic-binary-predicate-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
@@ -556,7 +568,16 @@
     (token/p 'CLOSE-PAREN)
     (pure (list 'variadic-predicate/c a b))))
 
-(define variadic-simple-predicate/p
+(define variadic-binary-predicate-b/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'predicate/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'ELLIPSIS)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'variadic-predicate/c a b))))
+
+(define variadic-simple-predicate-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
@@ -566,10 +587,23 @@
            (pure 'variadic-predicate/c)]
           [else (pure (list 'variadic-predicate/c a))])))
 
+(define variadic-simple-predicate-b/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'predicate/c)
+    [a <- contract/p]
+    (token/p 'ELLIPSIS)
+    (token/p 'CLOSE-PAREN)
+    (cond [(eq? 'any/c a)
+           (pure 'variadic-predicate/c)]
+          [else (pure (list 'variadic-predicate/c a))])))
+
 (define variadic-predicate/p
-  (or/p (try/p variadic-binary-predicate-tail/p)
-        (try/p variadic-binary-predicate/p)
-        (try/p variadic-simple-predicate/p)))
+  (or/p (try/p variadic-binary-predicate-tail-a/p)
+        (try/p variadic-binary-predicate-a/p)
+        (try/p variadic-simple-predicate-a/p)
+        (try/p variadic-binary-predicate-tail-b/p)
+        (try/p variadic-binary-predicate-b/p)
+        (try/p variadic-simple-predicate-b/p)))
 
 (define variadic-binary-composition-tail/p
   (do (token/p 'OPEN-PAREN)

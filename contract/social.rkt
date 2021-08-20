@@ -96,7 +96,7 @@
    #'(function/c any/c ··· any/c)])
 
 (define-syntax-parser predicate/c
-  [(_ on-type/c) #'(function/c on-type/c boolean?)]
+  [(_ on-type/c ...) #'(function/c on-type/c ... boolean?)]
   [_:id #'(predicate/c any/c)])
 
 (define-syntax-parser binary-predicate/c
