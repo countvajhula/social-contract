@@ -280,7 +280,35 @@
         (operation/c 1 positive? negative?)
         (- a))
       (check-equal? (g 3) -3)
-      (check-exn exn:fail:contract? (thunk (g -2)))))
+      (check-exn exn:fail:contract? (thunk (g -2))))
+    (test-case
+        "Head parameters"
+      (define/contract (g a b c d)
+        (operation/c 2 positive? negative? (head string? list?))
+        (- (* c d)))
+      (check-equal? (g "2" (list 3) 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g (list 3) "2" 2 3))))
+    (test-case
+        "Head parameters - no target"
+      (define/contract (g a b c d)
+        (operation/c 2 positive? (head string? list?))
+        (- (* c d)))
+      (check-equal? (g "2" (list 3) 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g (list 3) "2" 2 3))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g a b c d)
+        (operation/c 2 positive? negative? (tail string? list?))
+        (- (* a b)))
+      (check-equal? (g 2 3 "2" (list 3)) -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 (list 3) "2"))))
+    (test-case
+        "Tail parameters - no target"
+      (define/contract (g a b c d)
+        (operation/c 2 positive? (tail string? list?))
+        (- (* a b)))
+      (check-equal? (g 2 3 "2" (list 3)) -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 (list 3) "2")))))
 
    (test-suite
     "binary-operation/c"
@@ -310,7 +338,35 @@
       (define/contract (g a b)
         (binary-operation/c positive? negative?)
         5)
-      (check-exn exn:fail:contract? (thunk (g 2 3)))))
+      (check-exn exn:fail:contract? (thunk (g 2 3))))
+    (test-case
+        "Head parameters"
+      (define/contract (g a b c)
+        (binary-operation/c positive? negative? (head string?))
+        (- (* b c)))
+      (check-equal? (g "4" 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4))))
+    (test-case
+        "Head parameters - no target"
+      (define/contract (g a b c)
+        (binary-operation/c positive? (head string?))
+        (- (* b c)))
+      (check-equal? (g "4" 2 3) -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g a b c)
+        (binary-operation/c positive? negative? (tail string?))
+        (- (* a b)))
+      (check-equal? (g 2 3 "4") -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4))))
+    (test-case
+        "Tail parameters - no target"
+      (define/contract (g a b c)
+        (binary-operation/c positive? (tail string?))
+        (- (* a b)))
+      (check-equal? (g 2 3 "4") -6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4)))))
 
    (test-suite
     "predicate/c"

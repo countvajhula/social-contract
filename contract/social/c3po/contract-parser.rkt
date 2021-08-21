@@ -469,13 +469,41 @@
                          contract/p))]
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (if (all-equal? doms)
-        (if (eq? 'any/c target)
-            (pure (list 'operation/c (length doms) (first doms)))
-            (pure (list 'operation/c (length doms) (first doms) target)))
-        (fail/p (message (srcloc #f #f #f #f #f)
-                         doms
-                         (list "input contracts are not identical"))))))
+    (cond [(all-equal? doms)
+           (if (eq? 'any/c target)
+               (pure (list 'operation/c (length doms) (first doms)))
+               (pure (list 'operation/c (length doms) (first doms) target)))]
+          [(let ([run-length (leading-run-length doms)])
+             (and (> run-length 1) run-length))
+           =>
+           (λ (run-length)
+             (if (eq? 'any/c target)
+                 (pure (list 'operation/c
+                             run-length
+                             (first doms)
+                             (list* 'tail (drop doms run-length))))
+                 (pure (list 'operation/c
+                             run-length
+                             (first doms)
+                             target
+                             (list* 'tail (drop doms run-length))))))]
+          [(let ([run-length (leading-run-length (reverse doms))])
+             (and (> run-length 1) run-length))
+           =>
+           (λ (run-length)
+             (if (eq? 'any/c target)
+                 (pure (list 'operation/c
+                             run-length
+                             (last doms)
+                             (list* 'head (take doms (- (length doms) run-length)))))
+                 (pure (list 'operation/c
+                             run-length
+                             (last doms)
+                             target
+                             (list* 'head (take doms (- (length doms) run-length)))))))]
+          [else (fail/p (message (srcloc #f #f #f #f #f)
+                                 doms
+                                 (list "neither leading nor trailing input contracts are identical")))])))
 
 (define composition/p
   (do (token/p 'OPEN-PAREN)

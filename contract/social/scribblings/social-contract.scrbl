@@ -77,7 +77,8 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 
 @deftogether[(
 @defform[(self-map/c type/c)]
-@defform/subs[#:link-target? #f (self-map/c type/c paramspec)
+@defform/subs[#:link-target? #f
+              (self-map/c type/c paramspec)
               ([paramspec (code:line (head arg/c ...))
                           (code:line (tail arg/c ...))])]
 )]{
@@ -181,11 +182,21 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defform[(operation/c n source/c target/c)]
 @defform[#:link-target? #f
          (operation/c n source/c)]
+@defform[#:link-target? #f
+         (operation/c n source/c target/c paramspec)]
+@defform[#:link-target? #f
+         (operation/c n source/c paramspec)]
 @defform[(binary-operation/c source/c target/c)]
 @defform[#:link-target? #f
          (binary-operation/c source/c)]
+@defform[#:link-target? #f
+         (binary-operation/c source/c target/c paramspec)]
+@defform/subs[#:link-target? #f
+              (binary-operation/c source/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
-  @racket[operation/c] is a contract to recognize an @racket[n]-ary @hyperlink["https://en.wikipedia.org/wiki/Homogeneous_relation"]{homogeneous} @hyperlink["https://en.wikipedia.org/wiki/Operation_(mathematics)"]{operation}, that is, a function taking @racket[n] arguments where each argument is of the same type. The inputs are expected to be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. When the @racket[(operator/c n source/c)] form is used, the output uses @racket[any/c]. @racket[operation/c] expects a @emph{specific} number of inputs. To recognize an arbitrary number of inputs, use @racket[variadic-function/c] instead.
+  @racket[operation/c] is a contract to recognize an @racket[n]-ary @hyperlink["https://en.wikipedia.org/wiki/Homogeneous_relation"]{homogeneous} @hyperlink["https://en.wikipedia.org/wiki/Operation_(mathematics)"]{operation}, that is, a function taking @racket[n] arguments where each argument is of the same type. The inputs are expected to be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. The contract can also accept a specific number of extra arguments which are specified using a @racket[paramspec] form, which works the same way as in @racket[self-map/c]. When the @racket[(operator/c n source/c)] form is used, the output uses @racket[any/c]. @racket[operation/c] expects a @emph{specific} number of inputs. To recognize an arbitrary number of inputs, use @racket[variadic-function/c] instead.
 
  @racket[binary-operation/c] recognizes an operation of arity @racket[2]. Note that the term "binary operation" isn't used consistently in mathematical literature, where it sometimes refers specifically to a @emph{closed} binary operation where the output is of the same type as the input. For this more specific case, use @racket[binary-composition/c] instead.
 

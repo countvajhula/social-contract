@@ -70,16 +70,36 @@
   [_:id #'(function/c any/c any/c any/c)])
 
 (define-syntax-parser operation/c
+  [(_ n:number source/c ((~datum head) params ...))
+   #'(operation/c n source/c any/c (head params ...))]
+  [(_ n:number source/c ((~datum tail) params ...))
+   #'(operation/c n source/c any/c (tail params ...))]
   [(_ n:number source/c target/c)
    (datum->syntax this-syntax
                   (append (list 'function/c)
                           (repeat (syntax->datum #'n) #'source/c)
                           (list #'target/c)))]
+  [(_ n:number source/c target/c ((~datum head) arg/c ...))
+   (datum->syntax this-syntax
+                  (append (list 'function/c)
+                          (syntax->list #'(arg/c ...))
+                          (repeat (syntax->datum #'n) #'source/c)
+                          (list #'target/c)))]
+  [(_ n:number source/c target/c ((~datum tail) arg/c ...))
+   (datum->syntax this-syntax
+                  (append (list 'function/c)
+                          (repeat (syntax->datum #'n) #'source/c)
+                          (syntax->list #'(arg/c ...))
+                          (list #'target/c)))]
   [(_ n:number source/c)
    #'(operation/c n source/c any/c)])
 
 (define-syntax-parser binary-operation/c
+  [(_ source/c ((~datum head) arg/c ...)) #'(binary-operation/c source/c any/c (head arg/c ...))]
+  [(_ source/c ((~datum tail) arg/c ...)) #'(binary-operation/c source/c any/c (tail arg/c ...))]
   [(_ source/c target/c) #'(binary-function/c source/c source/c target/c)]
+  [(_ source/c target/c ((~datum head) arg/c ...)) #'(operation/c 2 source/c target/c (head arg/c ...))]
+  [(_ source/c target/c ((~datum tail) arg/c ...)) #'(operation/c 2 source/c target/c (tail arg/c ...))]
   [(_ source/c) #'(binary-operation/c source/c any/c)])
 
 (define-syntax-parser variadic-function/c

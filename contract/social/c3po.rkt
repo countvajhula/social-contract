@@ -71,7 +71,11 @@
        "operation/c"
        (check-equal? (translate (-> a a a b)) '(operation/c 3 a b))
        (check-equal? (translate (-> a a a a b)) '(operation/c 4 a b))
-       (check-equal? (translate (-> a a a any/c)) '(operation/c 3 a)))
+       (check-equal? (translate (-> a a a c b)) '(operation/c 3 a b (tail c)))
+       (check-equal? (translate (-> c a a a b)) '(operation/c 3 a b (head c)))
+       (check-equal? (translate (-> a a a any/c)) '(operation/c 3 a))
+       (check-equal? (translate (-> a a a b any/c)) '(operation/c 3 a (tail b)))
+       (check-equal? (translate (-> b a a a any/c)) '(operation/c 3 a (head b))))
 
       (test-suite
        "maybe/c"
@@ -266,6 +270,10 @@
                      '(binary-composition/c boolean?))
        (check-equal? (translate (operation/c 2 number? list?))
                      '(binary-operation/c number? list?))
+       (check-equal? (translate (operation/c 2 number? list? (tail string?)))
+                     '(binary-operation/c number? list? (tail string?)))
+       (check-equal? (translate (operation/c 2 number? list? (head string?)))
+                     '(binary-operation/c number? list? (head string?)))
        (check-equal? (translate (operation/c 3 number? number?))
                      '(composition/c 3 number?))
        (check-equal? (translate (operation/c 2 number? number?))
