@@ -87,7 +87,7 @@
     (token/p 'CLOSE-PAREN)
     (pure (append doms (list target)))))
 
-(define variadic-function-no-arity/p
+(define variadic-function-components/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
     [pre-doms <- (many/p #:min 0
@@ -101,20 +101,6 @@
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
     (pure (list pre-doms var-dom post-doms target))))
-
-(define (variadic-function-with-arity/p n-pre n-post)
-  ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
-  ;; the variadic argument. n-post is the number of non-variadic inputs
-  ;; following (and not including) the variadic argument
-  (do (token/p 'OPEN-PAREN)
-      (identifier/p 'function/c)
-    [pre-doms <- (repeat/p n-pre contract/p)]
-    [var-dom <- contract/p]
-    (token/p 'ELLIPSIS)
-    [post-doms <- (repeat/p n-post contract/p)]
-    [target <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (append pre-doms (list var-dom) post-doms (list target)))))
 
 (define predicate/p
   (do (token/p 'OPEN-PAREN)
@@ -537,11 +523,11 @@
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
+    [c <- contract/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'tail)
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
-    [c <- contract/p]
     (token/p 'CLOSE-PAREN)
     (cond [(and (not (equal? a b))
                 (equal? b c))
@@ -554,13 +540,16 @@
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
-    [b <- contract/p]
     [c <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (cond [(and (not (equal? a b))
-                (equal? a c))
+                (equal? b c))
            (pure (list 'variadic-constructor/c '#:order ''bab
-                       b a))]
+                       a b))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
                                  b
                                  (list "input contracts match or output contract does not match an input contract")))])))
@@ -570,7 +559,7 @@
         (try/p variadic-constructor-bab/p)))
 
 (define variadic-function/p
-  (do [sig <- variadic-function-no-arity/p]
+  (do [sig <- variadic-function-components/p]
       (match-let ([(list pre var post target) sig])
         (cond [(and (not (null? pre)) (null? post))
                (if (eq? 'any/c target)
@@ -594,11 +583,11 @@
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
+    (identifier/p 'boolean?)
     (token/p 'OPEN-PAREN)
     (identifier/p 'tail)
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (identifier/p 'boolean?)
     (token/p 'CLOSE-PAREN)
     (pure (list 'variadic-predicate/c a (list 'tail b)))))
 
@@ -614,9 +603,12 @@
 (define variadic-binary-predicate-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
-    [a <- contract/p]
     [b <- contract/p]
     (identifier/p 'boolean?)
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    [a <- contract/p]
+    (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (pure (list 'variadic-predicate/c a b))))
 
@@ -661,11 +653,11 @@
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
+    [c <- contract/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'tail)
     [b <- contract/p]
     (token/p 'CLOSE-PAREN)
-    [c <- contract/p]
     (token/p 'CLOSE-PAREN)
     (if (and (equal? a b)
              (equal? b c)
@@ -678,9 +670,12 @@
 (define variadic-binary-composition/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
-    [a <- contract/p]
     [b <- contract/p]
     [c <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    [a <- contract/p]
+    (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (if (and (equal? a b)
              (equal? b c)
