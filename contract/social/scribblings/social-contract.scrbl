@@ -28,27 +28,25 @@
 
 @defmodule[contract/social]
 
-Collectively-defined, composable syntax to describe @seclink["contract-boundaries" #:doc '(lib "scribblings/guide/guide.scrbl")]{contracts} at a high level.
+High-level, composable syntax for describing @seclink["contract-boundaries" #:doc '(lib "scribblings/guide/guide.scrbl")]{contracts}.
 
 @section{Introduction}
 
-Racket's @seclink["contracts" #:doc '(lib "scribblings/reference/reference.scrbl")]{contract DSL} is a flexible way to describe arbitrary data types. In practice, such contracts often exhibit hierarchical structure that can be understood in terms of abstractions that correspond to standard notions or concepts that are broadly useful -- for instance, involving the arity of the function, or the relationship between its inputs and outputs. But the contract DSL does not provide a way to explicitly encode such abstractions, necessitating that contract authors spell out the details of each contract in terms of primitives such as @racket[->] and @racket[or/c]. In this sense, it is a @emph{low-level language} for describing the contract, analogous to describing the operation of addition in terms of @hyperlink["https://en.wikipedia.org/wiki/Combinational_logic"]{combinational logic}.
+Racket's built-in @seclink["contracts" #:doc '(lib "scribblings/reference/reference.scrbl")]{contract DSL} is a flexible way to describe arbitrary data types. An essential property of data is that it exhibits hierarchical structure. Yet, the contract DSL does not provide corresponding syntactic abstractions with which to express this structure, necessitating that contract authors spell out the details of each contract in terms of primitives such as @racket[->] and @racket[or/c]. In this sense, it is a @emph{low-level language} for describing the contract, analogous to describing the operation of addition in terms of @hyperlink["https://en.wikipedia.org/wiki/Combinational_logic"]{combinational logic}.
 
-The present module provides a curated list of composable forms which describe contracts in terms of their @emph{phrase structure}, that is, in terms of hierarchical abstractions that correspond to commonly encountered high-level data types, contracts whose definitions are collectively agreed upon. This agreement may take the form of collaborative development and discussion on the @hyperlink["https://github.com/countvajhula/social-contract/issues"]{source repository}, to agree on, for instance, the most useful form and variations of a @racketlink[predicate/c]{predicate} contract, or, at least, the agreement may simply be tacit in the sense that these contracts correspond to ideas that are common and widely known.
+The present module provides the missing abstractions, giving us a high level DSL for describing contracts in terms of their @emph{phrase structure}. The forms provided correspond to commonly encountered high-level data abstractions whose definitions are collectively agreed upon. This agreement may take the form of collaborative development and discussion on the @hyperlink["https://github.com/countvajhula/social-contract/issues"]{source repository}, to agree on, for instance, the most useful form and variations of a @racketlink[predicate/c]{predicate} contract, or, at least, the agreement may simply be tacit in the sense that these contracts correspond to ideas that are common and widely known.
 
-As an example, when you take two values of the same type and produce another value of the same type, this is an instance of @emph{composition}. Instead of specifying the contract for such a function using the contract DSL (e.g. @racket[(-> integer? integer? integer?)]) where the idea of composition cannot be encoded, we simply use the appropriate high-level composition contract (e.g. @racket[(binary-composition/c integer?)]). This helps both the writer as well as the reader of the code, since for the former it may reveal something that they hadn't already realized in thinking about the function merely as one which takes two integers and produces another -- that the function they wrote is a composing function -- and for the latter, it saves them the trouble of parsing the contract specification to understand that, indeed, this is a function that composes two values.
+As an example, when you take two values of the same type and produce another value of the same type, this is an instance of @emph{composition}. With the built-in contract DSL, the contract for this function may be specified as something like @racket[(-> integer? integer? integer?)], which does not encode the idea of composition. Instead, here, we simply use the appropriate high-level contract, for instance @racket[(binary-composition/c integer?)].
 
-As the forms compose, complex contracts exhibiting phrase structure have compact representations. For instance, @racket[(-> (-> integer? integer?) (-> integer? integer?) (-> integer? integer?))] may be expressed as @racket[(binary-composition/c (self-map/c integer?))].
-
-@section{How Do I Migrate My Existing Contracts?}
-
-For contracts that you've already written (e.g. in a module's @racket[provide] specification using @racket[contract-out]), one way to migrate them is to just do so manually, inspecting each one, understanding the high level idea involved if it is a common one, and then selecting the appropriate social contract to use in its place. This is a good exercise and would help you see the high level ideas encoded in your function specifications.
-
-Another way, which is a complement to the manual approach and especially useful if you are doing this for a large number of contracts and projects, is to use the @racket[contract/social/c3po] module which is a "social protocol assistant" parser. You could think of it as a shiny golden droid that, while helpful, doesn't always say the right things and requires you to make the final decisions. See @secref{c3po} for more on how to use it to help you migrate your contracts.
+As the forms also compose, complex contracts exhibiting phrase structure have compact representations. For instance, @racket[(-> (-> integer? integer?) (-> integer? integer?) (-> integer? integer?))] may be expressed as @racket[(binary-composition/c (self-map/c integer?))].
 
 @section{What if I Don't See the Contract I Need?}
 
 If the appropriate contract does not exist and you believe that the data you are attempting to describe is relatively general or common (e.g. you've needed this contract more than once, and suspect that others might, as well), consider @hyperlink["https://github.com/countvajhula/social-contract/issues"]{bringing it up} for possible addition. With enough support or motivation, it will be added.
+
+@section{How Do I Migrate My Existing Contracts?}
+
+In addition to the forms in @racket[contract/social], this collection also includes a racket-contract-to-social-contract "reverse compiler," which can help you migrate any existing contracts you've already written. You can use this either interactively, passing it one contract at a time to help you migrate your contracts manually, or you could also give it an entire @racket[provide] form at once, to translate them all wholesale. See @secref{c3po} for more on how to use this. Note that although you might prefer to, it isn't strictly necessary to migrate existing contracts, since the forms in this module can be used alongside them and even compose with them.
 
 @section{Contracts}
 
@@ -409,7 +407,7 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
   ]
 }
 
-@section[#:tag "c3po"]{"C3PO": Contract Migration Assistant}
+@section[#:tag "c3po"]{"C3PO": Social Protocol Assistant}
 
 @defmodule[contract/social/c3po]
 
@@ -435,8 +433,8 @@ You should use C3PO as an assistant and not defer to it blindly, due to the foll
 
 @subsubsection{Correct Vs Appropriate Contracts}
 
-Low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}.
+Low-level contract specifications cannot in general be uniquely mapped to high level contract representations, and in some cases a matching high-level contract may coincidentally have the same signature but not actually describe the data in question. For instance, a function that takes a number and a list and returns a list has the signature of a constructing function, yet, this particular function may be using the input number as an index of some kind to extract a sublist rather than incorporating it into the resulting list as a constructor typically would. We may prefer to think of this as a parametrized @racketlink[self-map/c]{self-map} or as a @racketlink[binary-function/c]{binary function} rather than as a @racketlink[binary-constructor/c]{binary constructor}. It all boils down to the question, "what is the idea behind this function?" -- which can't always be discerned from the function signature alone.
 
 @subsubsection{Not All Contract Forms Supported}
 
-At the moment, C3PO supports the @racket[->] and @racket[->*] contract forms, but not @racket[->i]. If @racket[->i] is encountered during parsing, it would just leave this form unchanged in the output (while translating the rest of it).
+At the moment, C3PO supports the @racket[->] and @racket[->*] contract forms, but not @racket[->i]. If @racket[->i] is encountered during parsing, it would just leave this form unchanged in the output (while translating the rest of it). Note that this is a limitation of C3PO, not the forms in @racket[contract/social], which are fully compatible with the built-in forms.
