@@ -224,10 +224,10 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defidform[variadic-predicate/c]
 @defform[#:link-target? #f
          (variadic-predicate/c source/c)]
-@defform[#:link-target? #f
-         (variadic-predicate/c a/c b/c)]
-@defform[#:link-target? #f
-         (variadic-predicate/c a/c (tail b/c))]
+@defform/subs[#:link-target? #f
+              (variadic-predicate/c source/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
   Similar to @racket[function/c], @racket[binary-function/c], and @racket[variadic-function/c], but these contracts recognize @hyperlink["https://en.wikipedia.org/wiki/Boolean-valued_function"]{predicates}, meaning that the output is expected to be of type @racket[boolean?].
 

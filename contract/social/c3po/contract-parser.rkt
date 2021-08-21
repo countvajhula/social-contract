@@ -610,7 +610,7 @@
     [a <- contract/p]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c a b))))
+    (pure (list 'variadic-predicate/c b (list 'head a)))))
 
 (define variadic-binary-predicate-b/p
   (do (token/p 'OPEN-PAREN)
@@ -619,7 +619,7 @@
     [b <- contract/p]
     (token/p 'ELLIPSIS)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c a b))))
+    (pure (list 'variadic-predicate/c b (list 'head a)))))
 
 (define variadic-simple-predicate-a/p
   (do (token/p 'OPEN-PAREN)

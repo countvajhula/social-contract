@@ -119,7 +119,7 @@
       (test-suite
        "variadic-predicate/c"
        (check-equal? (translate (-> a ... b boolean?)) '(variadic-predicate/c a (tail b)))
-       (check-equal? (translate (-> a b ... boolean?)) '(variadic-predicate/c a b))
+       (check-equal? (translate (-> a b ... boolean?)) '(variadic-predicate/c b (head a)))
        (check-equal? (translate (-> a ... boolean?)) '(variadic-predicate/c a))
        (check-equal? (translate (-> any/c ... boolean?)) 'variadic-predicate/c))
 

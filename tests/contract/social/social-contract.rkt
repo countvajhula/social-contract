@@ -449,7 +449,7 @@
     (test-case
         "Basic"
       (define/contract (g . as)
-        (variadic-predicate/c number? string?)
+        (variadic-predicate/c string? (head number?))
         #t)
       (check-true (g 2 "hi" "bye"))
       (check-true (g 2))

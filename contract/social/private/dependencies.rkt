@@ -62,7 +62,7 @@ need to handle that in the parser for the new form.
         'binary-function/c '(function/c)
         'variadic-function/c '(function/c)
         'operation/c '(function/c)
-        'binary-operation/c '(binary-function/c)
+        'binary-operation/c '(binary-function/c operation/c)
         'maybe/c null
         'nonempty/c null
         'composition/c '(operation/c)
