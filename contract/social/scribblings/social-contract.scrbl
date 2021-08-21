@@ -293,7 +293,10 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defform[(composition/c n type/c)]
 @defform[(binary-composition/c type/c)]
 @defform[(variadic-composition/c type/c)]
-@defform[#:link-target? #f (variadic-composition/c type/c type/c)]
+@defform/subs[#:link-target? #f
+              (variadic-composition/c type/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
   Similar to @racket[operation/c], @racket[binary-function/c] and @racket[variadic-function/c], but these contracts expect the input types and the output type to match, i.e. they recognize functions that @emph{compose} values of some type.
 

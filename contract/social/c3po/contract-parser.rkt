@@ -662,7 +662,7 @@
     (if (and (equal? a b)
              (equal? b c)
              (not (eq? 'any/c a)))
-        (pure (list 'variadic-composition/c a a))
+        (pure (list 'variadic-composition/c a (list 'tail a)))
         (fail/p (message (srcloc #f #f #f #f #f)
                          b
                          (list "contracts are not identical"))))))
@@ -680,7 +680,7 @@
     (if (and (equal? a b)
              (equal? b c)
              (not (eq? 'any/c a)))
-        (pure (list 'variadic-composition/c a a))
+        (pure (list 'variadic-composition/c a (list 'head a)))
         (fail/p (message (srcloc #f #f #f #f #f)
                          b
                          (list "contracts are not identical"))))))

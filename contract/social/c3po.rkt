@@ -154,8 +154,8 @@
       (test-suite
        "variadic-composition/c"
        (check-equal? (translate (-> a ... a)) '(variadic-composition/c a))
-       (check-equal? (translate (-> a a ... a)) '(variadic-composition/c a a))
-       (check-equal? (translate (-> a ... a a)) '(variadic-composition/c a a)))
+       (check-equal? (translate (-> a a ... a)) '(variadic-composition/c a (head a)))
+       (check-equal? (translate (-> a ... a a)) '(variadic-composition/c a (tail a))))
 
       (test-suite
        "variadic-constructor/c"

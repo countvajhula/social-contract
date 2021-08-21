@@ -589,13 +589,22 @@
       (check-exn exn:fail:contract? (thunk (g "1")))
       (check-exn exn:fail:contract? (thunk (g 1 "2"))))
     (test-case
-        "Binary"
+        "Head parameters"
       (define/contract (g . as)
-        (variadic-composition/c number? number?)
+        (variadic-composition/c number? (head string?))
         5)
-      (check-equal? (g 1 2) 5)
-      (check-equal? (g 1 2 3) 5)
-      (check-equal? (g 1) 5)
+      (check-equal? (g "1" 2) 5)
+      (check-equal? (g "1" 2 3) 5)
+      (check-equal? (g "1") 5)
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g . as)
+        (variadic-composition/c number? (tail string?))
+        5)
+      (check-equal? (g 2 "1") 5)
+      (check-equal? (g 2 3 "1") 5)
+      (check-equal? (g "1") 5)
       (check-exn exn:fail:contract? (thunk (g)))))
 
    (test-suite

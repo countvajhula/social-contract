@@ -172,8 +172,12 @@
   (binary-operation/c type/c type/c))
 
 (define-syntax-parser variadic-composition/c
-  [(_ type/c) #'(variadic-function/c type/c type/c)]
-  [(_ type/c _) #'(variadic-function/c type/c type/c (head type/c))]) ; support minimum required arity instead?
+  [(_ type/c)
+   #'(variadic-function/c type/c type/c)]
+  [(_ type/c ((~datum head) arg/c ...))
+   #'(variadic-function/c type/c type/c (head arg/c ...))]
+  [(_ type/c ((~datum tail) arg/c ...))
+   #'(variadic-function/c type/c type/c (tail arg/c ...))])
 
 (define-syntax-parser classifier/c
   [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
