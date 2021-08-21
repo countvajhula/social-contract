@@ -157,13 +157,15 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defform[#:link-target? #f
          (variadic-function/c source/c)]
 @defform[#:link-target? #f
+         (variadic-function/c source/c paramspec)]
+@defform[#:link-target? #f
          (variadic-function/c source/c target/c)]
-@defform[#:link-target? #f
-         (variadic-function/c a/c b/c target/c)]
-@defform[#:link-target? #f
-         (variadic-function/c a/c (tail b/c) target/c)]
+@defform/subs[#:link-target? #f
+              (variadic-function/c source/c target/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
-  A contract to recognize a @hyperlink["https://beautifulracket.com/appendix/glossary.html#variadic"]{variadic} function, that is, a function taking an arbitrary number of arguments. The arguments are expected to all be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. If no contract is specified for the return value, it defaults to the input type. If more than one input contract is specified, then the contract expects the first argument to be of type @racket[a/c] and all subsequent arguments to be of type @racket[b/c], unless the second is provided in a @racket[(tail ...)] form. In that case, the contract expects the leading arguments to all be of type @racket[a/c] and the last argument to be of type @racket[b/c].
+  A contract to recognize a @hyperlink["https://beautifulracket.com/appendix/glossary.html#variadic"]{variadic} function, that is, a function taking an arbitrary number of arguments. The arguments in general are expected to all be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. Any number of extra arguments may be indicated via the @racket[paramspec], which is the same as that used in @racket[self-map/c] and @racket[operation/c]. If no contract is specified for the return value, it defaults to @racket[any/c].
 
  @racket[variadic-function/c] in general is equivalent to @racket[(-> source/c ... target/c)].
 

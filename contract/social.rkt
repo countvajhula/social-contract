@@ -95,20 +95,26 @@
    #'(operation/c n source/c any/c)])
 
 (define-syntax-parser binary-operation/c
-  [(_ source/c ((~datum head) arg/c ...)) #'(binary-operation/c source/c any/c (head arg/c ...))]
-  [(_ source/c ((~datum tail) arg/c ...)) #'(binary-operation/c source/c any/c (tail arg/c ...))]
-  [(_ source/c target/c) #'(binary-function/c source/c source/c target/c)]
-  [(_ source/c target/c ((~datum head) arg/c ...)) #'(operation/c 2 source/c target/c (head arg/c ...))]
-  [(_ source/c target/c ((~datum tail) arg/c ...)) #'(operation/c 2 source/c target/c (tail arg/c ...))]
-  [(_ source/c) #'(binary-operation/c source/c any/c)])
+  [(_ source/c ((~datum head) arg/c ...))
+   #'(binary-operation/c source/c any/c (head arg/c ...))]
+  [(_ source/c ((~datum tail) arg/c ...))
+   #'(binary-operation/c source/c any/c (tail arg/c ...))]
+  [(_ source/c target/c)
+   #'(binary-function/c source/c source/c target/c)]
+  [(_ source/c target/c ((~datum head) arg/c ...))
+   #'(operation/c 2 source/c target/c (head arg/c ...))]
+  [(_ source/c target/c ((~datum tail) arg/c ...))
+   #'(operation/c 2 source/c target/c (tail arg/c ...))]
+  [(_ source/c)
+   #'(binary-operation/c source/c any/c)])
 
 (define-syntax-parser variadic-function/c
-  [(_ a/c ((~datum tail) b/c) target/c)
+  [(_ source/c target/c ((~datum tail) arg/c ...))
    #:with ··· (quote-syntax ...)
-   #'(function/c a/c ··· b/c target/c)]
-  [(_ a/c b/c target/c)
+   #'(function/c source/c ··· arg/c ... target/c)]
+  [(_ source/c target/c ((~datum head) arg/c ...))
    #:with ··· (quote-syntax ...)
-   #'(function/c a/c b/c ··· target/c)]
+   #'(function/c arg/c ... source/c ··· target/c)]
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(function/c source/c ··· target/c)]
@@ -130,9 +136,9 @@
 
 (define-syntax-parser variadic-predicate/c
   [(_ a/c ((~datum tail) b/c))
-   #'(variadic-function/c a/c (tail b/c) boolean?)]
+   #'(variadic-function/c a/c boolean? (tail b/c))]
   [(_ a/c b/c)
-   #'(variadic-function/c a/c b/c boolean?)]
+   #'(variadic-function/c b/c boolean? (head a/c))]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
   [_:id #'(variadic-predicate/c any/c)])
 
@@ -167,7 +173,7 @@
 
 (define-syntax-parser variadic-composition/c
   [(_ type/c) #'(variadic-function/c type/c type/c)]
-  [(_ type/c _) #'(variadic-function/c type/c type/c type/c)]) ; support minimum required arity instead?
+  [(_ type/c _) #'(variadic-function/c type/c type/c (head type/c))]) ; support minimum required arity instead?
 
 (define-syntax-parser classifier/c
   [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
@@ -207,9 +213,9 @@
 
 (define-syntax-parser variadic-constructor/c
   [(_ (~seq #:order (~datum 'abb)) primitive/c composite/c)
-   #'(variadic-function/c primitive/c (tail composite/c) composite/c)]
+   #'(variadic-function/c primitive/c composite/c (tail composite/c))]
   [(_ (~seq #:order (~datum 'bab)) primitive/c composite/c)
-   #'(variadic-function/c composite/c primitive/c composite/c)]
+   #'(variadic-function/c primitive/c composite/c (head composite/c))]
   [(_ primitive/c composite/c)
    ;; default to abb order
    #'(variadic-constructor/c #:order 'abb primitive/c composite/c)])

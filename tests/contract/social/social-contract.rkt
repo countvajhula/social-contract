@@ -231,7 +231,7 @@
     (test-case
         "Basic"
       (define/contract (g . as)
-        (variadic-function/c number? list? number?)
+        (variadic-function/c list? number? (head number?))
         5)
       (check-equal? (g 3 (list 1 2) null) 5)
       (check-equal? (g 3) 5)
@@ -239,7 +239,7 @@
     (test-case
         "Variadic head"
       (define/contract (g . as)
-        (variadic-function/c number? (tail list?) number?)
+        (variadic-function/c number? number? (tail list?))
         5)
       (check-equal? (g 3 4 5 (list 1 2)) 5)
       (check-equal? (g (list 1 2)) 5)

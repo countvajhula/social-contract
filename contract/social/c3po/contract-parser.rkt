@@ -87,6 +87,21 @@
     (token/p 'CLOSE-PAREN)
     (pure (append doms (list target)))))
 
+(define variadic-function-no-arity/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [pre-doms <- (many/p #:min 0
+                         (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                             contract/p))]
+    [var-dom <- contract/p]
+    (token/p 'ELLIPSIS)
+    [post-doms <- (many/p #:min 0
+                          (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                              contract/p))]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list pre-doms var-dom post-doms target))))
+
 (define (variadic-function-with-arity/p n-pre n-post)
   ;; n-pre is the number of non-variadic inputs preceding, i.e. not including,
   ;; the variadic argument. n-post is the number of non-variadic inputs
@@ -554,30 +569,26 @@
   (or/p (try/p variadic-constructor-abb/p)
         (try/p variadic-constructor-bab/p)))
 
-(define variadic-binary-tail/p
-  (do [sig <- (variadic-function-with-arity/p 0 1)]
-      (match-let ([(list a b c) sig])
-        (pure (list 'variadic-function/c a (list 'tail b) c)))))
-
-(define variadic-binary/p
-  (do [sig <- (variadic-function-with-arity/p 1 0)]
-      (match-let ([(list a b c) sig])
-        (pure (list 'variadic-function/c a b c)))))
-
-(define variadic-simple/p
-  (do [sig <- (variadic-function-with-arity/p 0 0)]
-      (match-let ([(list a b) sig])
-        (cond [(andmap (curry eq? 'any/c)
-                       (list a b))
-               (pure 'variadic-function/c)]
-              [(eq? 'any/c b)
-               (pure (list 'variadic-function/c a))]
-              [else (pure (list 'variadic-function/c a b))]))))
-
 (define variadic-function/p
-  (or/p (try/p variadic-binary-tail/p)
-        (try/p variadic-binary/p)
-        (try/p variadic-simple/p)))
+  (do [sig <- variadic-function-no-arity/p]
+      (match-let ([(list pre var post target) sig])
+        (cond [(and (not (null? pre)) (null? post))
+               (if (eq? 'any/c target)
+                   (pure (list 'variadic-function/c var (list* 'head pre)))
+                   (pure (list 'variadic-function/c var target (list* 'head pre))))]
+              [(and (not (null? post)) (null? pre))
+               (if (eq? 'any/c target)
+                   (pure (list 'variadic-function/c var (list* 'tail post)))
+                   (pure (list 'variadic-function/c var target (list* 'tail post))))]
+              [(and (null? pre) (null? post))
+               (if (eq? 'any/c target)
+                   (if (eq? 'any/c var)
+                       (pure 'variadic-function/c)
+                       (pure (list 'variadic-function/c var)))
+                   (pure (list 'variadic-function/c var target)))]
+              [else (fail/p (message (srcloc #f #f #f #f #f)
+                                     sig
+                                     (list "variadic function has both head and tail")))]))))
 
 (define variadic-binary-predicate-tail-a/p
   (do (token/p 'OPEN-PAREN)

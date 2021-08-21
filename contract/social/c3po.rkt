@@ -61,8 +61,9 @@
 
       (test-suite
        "variadic-function/c"
-       (check-equal? (translate (-> a ... b c)) '(variadic-function/c a (tail b) c))
-       (check-equal? (translate (-> a b ... c)) '(variadic-function/c a b c))
+       (check-equal? (translate (-> a ... b c)) '(variadic-function/c a c (tail b)))
+       (check-equal? (translate (-> a b ... c)) '(variadic-function/c b c (head a)))
+       (check-equal? (translate (-> a q b ... c)) '(variadic-function/c b c (head a q)))
        (check-equal? (translate (-> a ... b)) '(variadic-function/c a b))
        (check-equal? (translate (-> a ... any/c)) '(variadic-function/c a))
        (check-equal? (translate (-> any/c ... any/c)) 'variadic-function/c))
@@ -225,9 +226,9 @@
        (check-equal? (translate (a ... . -> . b))
                      '(variadic-function/c a b))
        (check-equal? (translate (a b ... . -> . c))
-                     '(variadic-function/c a b c))
+                     '(variadic-function/c b c (head a)))
        (check-equal? (translate (a ... b . -> . c))
-                     '(variadic-function/c a (tail b) c)))
+                     '(variadic-function/c a c (tail b))))
 
       (test-suite
        "edge cases"
