@@ -118,8 +118,8 @@
 
       (test-suite
        "variadic-predicate/c"
-       (check-equal? (translate (-> a ... b boolean?)) '(variadic-predicate/c a (tail b)))
-       (check-equal? (translate (-> a b ... boolean?)) '(variadic-predicate/c b (head a)))
+       (check-equal? (translate (-> a ... b c boolean?)) '(variadic-predicate/c a (tail b c)))
+       (check-equal? (translate (-> b c a ... boolean?)) '(variadic-predicate/c a (head b c)))
        (check-equal? (translate (-> a ... boolean?)) '(variadic-predicate/c a))
        (check-equal? (translate (-> any/c ... boolean?)) 'variadic-predicate/c))
 
@@ -145,17 +145,21 @@
       (test-suite
        "composition/c"
        (check-equal? (translate (-> a a a a)) '(composition/c 3 a))
-       (check-equal? (translate (-> a a a a a)) '(composition/c 4 a)))
+       (check-equal? (translate (-> a a a a a)) '(composition/c 4 a))
+       (check-equal? (translate (-> b a a a a)) '(composition/c 3 a (head b)))
+       (check-equal? (translate (-> a a a b a)) '(composition/c 3 a (tail b))))
 
       (test-suite
        "binary-composition/c"
-       (check-equal? (translate (-> a a a)) '(binary-composition/c a)))
+       (check-equal? (translate (-> a a a)) '(binary-composition/c a))
+       (check-equal? (translate (-> b c a a a)) '(binary-composition/c a (head b c)))
+       (check-equal? (translate (-> a a b c a)) '(binary-composition/c a (tail b c))))
 
       (test-suite
        "variadic-composition/c"
        (check-equal? (translate (-> a ... a)) '(variadic-composition/c a))
-       (check-equal? (translate (-> a a ... a)) '(variadic-composition/c a (head a)))
-       (check-equal? (translate (-> a ... a a)) '(variadic-composition/c a (tail a))))
+       (check-equal? (translate (-> b c a ... a)) '(variadic-composition/c a (head b c)))
+       (check-equal? (translate (-> a ... b c a)) '(variadic-composition/c a (tail b c))))
 
       (test-suite
        "variadic-constructor/c"

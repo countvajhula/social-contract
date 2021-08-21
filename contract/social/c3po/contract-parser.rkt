@@ -389,6 +389,8 @@
   (or/p (try/p free-binary-function/p)
         (try/p reducible-binary-function/p)))
 
+;; we probably should not allow binary operations to accept
+;; any/c, so that this path shouldn't be hit
 (define homogeneous-binary-predicate/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-operation/c)
@@ -406,7 +408,10 @@
     [b <- contract/p]
     (identifier/p 'boolean?)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'binary-predicate/c a b))))
+    (if (and (equal? a b) ; should only happen on any/c
+             (eq? 'any/c a))
+        (pure 'binary-predicate/c)
+        (pure (list 'binary-predicate/c a b)))))
 
 (define binary-predicate/p
   (or/p (try/p homogeneous-binary-predicate/p)
@@ -419,7 +424,8 @@
     [b <- contract/p]
     [c <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (if (equal? a b)
+    (if (and (equal? a b)
+             (not (eq? 'any/c a)))
         (if (eq? 'any/c c)
             (pure (list 'binary-operation/c a))
             (pure (list 'binary-operation/c a c)))
@@ -451,6 +457,38 @@
                          b
                          (list "contracts are not identical"))))))
 
+(define binary-composition-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-operation/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    [args <- (many/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a b)
+        (pure (list 'binary-composition/c a (list* 'head args)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         b
+                         (list "contracts are not identical"))))))
+
+(define binary-composition-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-operation/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'tail)
+    [args <- (many/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a b)
+        (pure (list 'binary-composition/c a (list* 'tail args)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         b
+                         (list "contracts are not identical"))))))
+
 (define binary-composition-predicates/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-predicate/c)
@@ -460,6 +498,8 @@
 
 (define binary-composition/p
   (or/p (try/p binary-composition-typical/p)
+        (try/p binary-composition-with-head/p)
+        (try/p binary-composition-with-tail/p)
         (try/p binary-composition-predicates/p)))
 
 (define operation/p
@@ -470,43 +510,48 @@
                          contract/p))]
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (cond [(all-equal? doms)
-           (if (eq? 'any/c target)
-               (pure (list 'operation/c (length doms) (first doms)))
-               (pure (list 'operation/c (length doms) (first doms) target)))]
-          [(let ([run-length (leading-run-length doms)])
-             (and (> run-length 1) run-length))
-           =>
-           (λ (run-length)
-             (if (eq? 'any/c target)
-                 (pure (list 'operation/c
-                             run-length
-                             (first doms)
-                             (list* 'tail (drop doms run-length))))
-                 (pure (list 'operation/c
-                             run-length
-                             (first doms)
-                             target
-                             (list* 'tail (drop doms run-length))))))]
-          [(let ([run-length (leading-run-length (reverse doms))])
-             (and (> run-length 1) run-length))
-           =>
-           (λ (run-length)
-             (if (eq? 'any/c target)
-                 (pure (list 'operation/c
-                             run-length
-                             (last doms)
-                             (list* 'head (take doms (- (length doms) run-length)))))
-                 (pure (list 'operation/c
-                             run-length
-                             (last doms)
-                             target
-                             (list* 'head (take doms (- (length doms) run-length)))))))]
-          [else (fail/p (message (srcloc #f #f #f #f #f)
-                                 doms
-                                 (list "neither leading nor trailing input contracts are identical")))])))
+    (if (and (all-equal? doms)
+             (eq? 'any/c (first doms)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         doms
+                         (list "any/c cannot be treated as homogeneous")))
+        (cond [(all-equal? doms)
+               (if (eq? 'any/c target)
+                   (pure (list 'operation/c (length doms) (first doms)))
+                   (pure (list 'operation/c (length doms) (first doms) target)))]
+              [(let ([run-length (leading-run-length doms)])
+                 (and (> run-length 1) run-length))
+               =>
+               (λ (run-length)
+                 (if (eq? 'any/c target)
+                     (pure (list 'operation/c
+                                 run-length
+                                 (first doms)
+                                 (list* 'tail (drop doms run-length))))
+                     (pure (list 'operation/c
+                                 run-length
+                                 (first doms)
+                                 target
+                                 (list* 'tail (drop doms run-length))))))]
+              [(let ([run-length (leading-run-length (reverse doms))])
+                 (and (> run-length 1) run-length))
+               =>
+               (λ (run-length)
+                 (if (eq? 'any/c target)
+                     (pure (list 'operation/c
+                                 run-length
+                                 (last doms)
+                                 (list* 'head (take doms (- (length doms) run-length)))))
+                     (pure (list 'operation/c
+                                 run-length
+                                 (last doms)
+                                 target
+                                 (list* 'head (take doms (- (length doms) run-length)))))))]
+              [else (fail/p (message (srcloc #f #f #f #f #f)
+                                     doms
+                                     (list "neither leading nor trailing input contracts are identical")))]))))
 
-(define composition/p
+(define composition-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'operation/c)
     [n <- (number/p)]
@@ -518,6 +563,45 @@
         (fail/p (message (srcloc #f #f #f #f #f)
                          (list source target)
                          (list "input and output contracts are not identical"))))))
+
+(define composition-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'operation/c)
+    [n <- (number/p)]
+    [source <- contract/p]
+    [target <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    [args <- (many/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (if (equal? source target)
+        (pure (list 'composition/c n source (list* 'head args)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         (list source target)
+                         (list "input and output contracts are not identical"))))))
+
+(define composition-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'operation/c)
+    [n <- (number/p)]
+    [source <- contract/p]
+    [target <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'tail)
+    [args <- (many/p contract/p)]
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (if (equal? source target)
+        (pure (list 'composition/c n source (list* 'tail args)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         (list source target)
+                         (list "input and output contracts are not identical"))))))
+
+(define composition/p
+  (or/p (try/p composition-simple/p)
+        (try/p composition-with-head/p)
+        (try/p composition-with-tail/p)))
 
 (define variadic-constructor-abb/p
   (do (token/p 'OPEN-PAREN)
@@ -579,47 +663,53 @@
                                      sig
                                      (list "variadic function has both head and tail")))]))))
 
-(define variadic-binary-predicate-tail-a/p
+(define variadic-predicate-with-tail-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [a <- contract/p]
     (identifier/p 'boolean?)
     (token/p 'OPEN-PAREN)
     (identifier/p 'tail)
-    [b <- contract/p]
+    [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c a (list 'tail b)))))
+    (pure (list 'variadic-predicate/c a (list* 'tail args)))))
 
-(define variadic-binary-predicate-tail-b/p
+(define variadic-predicate-with-tail-b/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'predicate/c)
     [a <- contract/p]
     (token/p 'ELLIPSIS)
-    [b <- contract/p]
+    [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c a (list 'tail b)))))
+    (if (null? args)
+        (pure (list 'variadic-predicate/c a))
+        (pure (list 'variadic-predicate/c a (list* 'tail args))))))
 
-(define variadic-binary-predicate-a/p
+(define variadic-predicate-with-head-a/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [b <- contract/p]
     (identifier/p 'boolean?)
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
-    [a <- contract/p]
+    [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c b (list 'head a)))))
+    (pure (list 'variadic-predicate/c b (list* 'head args)))))
 
-(define variadic-binary-predicate-b/p
+(define variadic-predicate-with-head-b/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'predicate/c)
-    [a <- contract/p]
+    [args <- (many/p #:min 0
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
     [b <- contract/p]
     (token/p 'ELLIPSIS)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c b (list 'head a)))))
+    (if (null? args)
+        (pure (list 'variadic-predicate/c b))
+        (pure (list 'variadic-predicate/c b (list* 'head args))))))
 
 (define variadic-simple-predicate-a/p
   (do (token/p 'OPEN-PAREN)
@@ -642,45 +732,43 @@
           [else (pure (list 'variadic-predicate/c a))])))
 
 (define variadic-predicate/p
-  (or/p (try/p variadic-binary-predicate-tail-a/p)
-        (try/p variadic-binary-predicate-a/p)
+  (or/p (try/p variadic-predicate-with-tail-a/p)
+        (try/p variadic-predicate-with-head-a/p)
         (try/p variadic-simple-predicate-a/p)
-        (try/p variadic-binary-predicate-tail-b/p)
-        (try/p variadic-binary-predicate-b/p)
+        (try/p variadic-predicate-with-tail-b/p)
+        (try/p variadic-predicate-with-head-b/p)
         (try/p variadic-simple-predicate-b/p)))
 
-(define variadic-binary-composition-tail/p
+(define variadic-composition-with-tail/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
-    [a <- contract/p]
+    [b <- contract/p]
     [c <- contract/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'tail)
-    [b <- contract/p]
+    [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (if (and (equal? a b)
-             (equal? b c)
-             (not (eq? 'any/c a)))
-        (pure (list 'variadic-composition/c a (list 'tail a)))
+    (if (and (equal? b c)
+             (not (eq? 'any/c b)))
+        (pure (list 'variadic-composition/c b (list* 'tail args)))
         (fail/p (message (srcloc #f #f #f #f #f)
                          b
                          (list "contracts are not identical"))))))
 
-(define variadic-binary-composition/p
+(define variadic-composition-with-head/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'variadic-function/c)
     [b <- contract/p]
     [c <- contract/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
-    [a <- contract/p]
+    [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (if (and (equal? a b)
-             (equal? b c)
-             (not (eq? 'any/c a)))
-        (pure (list 'variadic-composition/c a (list 'head a)))
+    (if (and (equal? b c)
+             (not (eq? 'any/c b)))
+        (pure (list 'variadic-composition/c b (list* 'head args)))
         (fail/p (message (srcloc #f #f #f #f #f)
                          b
                          (list "contracts are not identical"))))))
@@ -698,8 +786,8 @@
                          (list "contracts are not identical"))))))
 
 (define variadic-composition/p
-  (or/p (try/p variadic-binary-composition-tail/p)
-        (try/p variadic-binary-composition/p)
+  (or/p (try/p variadic-composition-with-tail/p)
+        (try/p variadic-composition-with-head/p)
         (try/p variadic-simple-composition/p)))
 
 (define named-contract-specification/p
@@ -716,10 +804,10 @@
         (try/p (identifier/p))
         (try/p function/p)
         (try/p thunk/p)
+        (try/p operation/p)
         (try/p self-map/p)
         (try/p binary-function/p)
         (try/p binary-operation/p)
-        (try/p operation/p)
         (try/p composition/p)
         (try/p variadic-function/p)
         (try/p predicate/p)

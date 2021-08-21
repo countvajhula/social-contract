@@ -162,14 +162,19 @@
   (and/c type/c (not/c empty?)))
 
 (define-syntax-parser composition/c
+  [(_ n:number type/c ((~datum head) arg/c ...))
+   #'(operation/c n type/c type/c (head arg/c ...))]
+  [(_ n:number type/c ((~datum tail) arg/c ...))
+   #'(operation/c n type/c type/c (tail arg/c ...))]
   [(_ n:number type/c)
-   (datum->syntax this-syntax
-                  (append (list 'operation/c)
-                          (list #'n)
-                          (list #'type/c #'type/c)))])
+   #'(operation/c n type/c type/c)])
 
-(define-syntax-parse-rule (binary-composition/c type/c)
-  (binary-operation/c type/c type/c))
+(define-syntax-parser binary-composition/c
+  [(_ type/c ((~datum head) arg/c ...))
+   #'(binary-operation/c type/c type/c (head arg/c ...))]
+  [(_ type/c ((~datum tail) arg/c ...))
+   #'(binary-operation/c type/c type/c (tail arg/c ...))]
+  [(_ type/c) #'(binary-operation/c type/c type/c)])
 
 (define-syntax-parser variadic-composition/c
   [(_ type/c)

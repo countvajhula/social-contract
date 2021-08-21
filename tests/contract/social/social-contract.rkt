@@ -562,7 +562,21 @@
         (composition/c 1 positive?)
         a)
       (check-equal? (g 3) 3)
-      (check-exn exn:fail:contract? (thunk (g -2)))))
+      (check-exn exn:fail:contract? (thunk (g -2))))
+    (test-case
+        "Head parameters"
+      (define/contract (g a b c)
+        (composition/c 2 positive? (head string?))
+        (* b c))
+      (check-equal? (g "4" 2 3) 6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g a b c)
+        (composition/c 2 positive? (tail string?))
+        (* a b))
+      (check-equal? (g 2 3 "4") 6)
+      (check-exn exn:fail:contract? (thunk (g 2 3 4)))))
 
    (test-suite
     "binary-composition/c"
@@ -574,7 +588,21 @@
       (check-equal? (g 1 2) 5)
       (check-exn exn:fail:contract? (thunk (g 1 "2")))
       (check-exn exn:fail:contract? (thunk (g 1)))
-      (check-exn exn:fail:contract? (thunk (g "1" "2")))))
+      (check-exn exn:fail:contract? (thunk (g "1" "2"))))
+    (test-case
+        "Head parameters"
+      (define/contract (g a b c)
+        (binary-composition/c number? (head string?))
+        5)
+      (check-equal? (g "3" 1 2) 5)
+      (check-exn exn:fail:contract? (thunk (g 1 2 3))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g a b c)
+        (binary-composition/c number? (tail string?))
+        5)
+      (check-equal? (g 1 2 "3") 5)
+      (check-exn exn:fail:contract? (thunk (g 1 2 3)))))
 
    (test-suite
     "variadic-composition/c"

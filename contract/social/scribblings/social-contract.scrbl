@@ -291,7 +291,9 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 
 @deftogether[(
 @defform[(composition/c n type/c)]
+@defform[#:link-target? #f (composition/c n type/c paramspec)]
 @defform[(binary-composition/c type/c)]
+@defform[#:link-target? #f (binary-composition/c n type/c paramspec)]
 @defform[(variadic-composition/c type/c)]
 @defform/subs[#:link-target? #f
               (variadic-composition/c type/c paramspec)
