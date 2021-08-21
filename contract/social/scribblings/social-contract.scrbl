@@ -244,10 +244,16 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @racket[encoder/c] is equivalent to @racket[(-> any/c as-type/c)], @racket[decoder/c] is equivalent to @racket[(-> from-type/c any/c)], and @racket[hash-function/c] is equivalent to @racket[(-> any/c fixnum?)].
 }
 
-@defform[(lift/c pure/c functor/c)]{
- A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof].
+@deftogether[(
+@defform[(lift/c pure/c functor/c)]
+@defform/subs[#:link-target? #f
+              (lift/c pure/c functor/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
+)]{
+ A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof]. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
 
- Equivalent to @racket[(-> pure/c (functor/c pure/c))].
+ Equivalent in general to @racket[(-> pure/c (functor/c pure/c))].
 
 @examples[
     #:eval eval-for-docs

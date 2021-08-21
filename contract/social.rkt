@@ -148,8 +148,13 @@
 (define-syntax-parse-rule (decoder/c from-type/c)
   (function/c from-type/c any/c))
 
-(define-syntax-parse-rule (lift/c pure/c functor/c)
-  (function/c pure/c (functor/c pure/c)))
+(define-syntax-parser lift/c
+  [(_ pure/c functor/c)
+   #'(function/c pure/c (functor/c pure/c))]
+  [(_ pure/c functor/c ((~datum head) arg/c ...))
+   #'(function/c arg/c ... pure/c (functor/c pure/c))]
+  [(_ pure/c functor/c ((~datum tail) arg/c ...))
+   #'(function/c pure/c arg/c ... (functor/c pure/c))])
 
 (define-syntax-parser hash-function/c
   [_:id #'(encoder/c fixnum?)])

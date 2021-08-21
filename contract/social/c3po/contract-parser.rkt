@@ -139,7 +139,7 @@
                          (list "can't decode from any/c")))
         (pure (list 'decoder/c a)))))
 
-(define lift/p
+(define lift-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
     [a <- contract/p]
@@ -153,6 +153,43 @@
         (fail/p (message (srcloc #f #f #f #f #f)
                          a
                          (list "parametric output contract doesn't match input"))))))
+
+(define (parametric-contract/p p)
+  (do (token/p 'OPEN-PAREN)
+      [c <- contract/p]
+    [d <- contract/p]
+    (if (equal? p d)
+        (pure (list c d))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         c
+                         (list "parametric output contract doesn't match input"))))))
+
+(define lift-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [a <- contract/p]
+    [b <- (parametric-contract/p a)]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'lift/c a (first b) (list* 'head args)))))
+
+(define lift-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    [b <- (parametric-contract/p a)]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'lift/c a (first b) (list* 'tail args)))))
+
+(define lift/p
+  (or/p (try/p lift-simple/p)
+        (try/p lift-with-head/p)
+        (try/p lift-with-tail/p)))
 
 (define hash-function/p
   (do (token/p 'OPEN-PAREN)

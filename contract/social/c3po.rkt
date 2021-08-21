@@ -136,7 +136,9 @@
       (test-suite
        "lift/c"
        (check-equal? (translate (-> number? (listof number?))) '(lift/c number? listof))
-       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number? sequenceof)))
+       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number? sequenceof))
+       (check-equal? (translate (-> b c a (listof a))) '(lift/c a listof (head b c)))
+       (check-equal? (translate (-> a b c (listof a))) '(lift/c a listof (tail b c))))
 
       (test-suite
        "hash-function/c"

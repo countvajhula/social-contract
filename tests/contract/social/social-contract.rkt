@@ -499,7 +499,25 @@
       (define/contract (g v)
         (lift/c number? listof)
         (vector v))
-      (check-exn exn:fail:contract? (thunk (g 5)))))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Head parameters"
+      (define/contract (g a v)
+        (lift/c number? listof (head string?))
+        (list v))
+      (check-equal? (g "1" 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g "5" "4")))
+      (check-exn exn:fail:contract? (thunk (g 3 2)))
+      (check-exn exn:fail:contract? (thunk (g 3))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g v a)
+        (lift/c number? listof (tail string?))
+        (list v))
+      (check-equal? (g 5 "1") (list 5))
+      (check-exn exn:fail:contract? (thunk (g "5" "4")))
+      (check-exn exn:fail:contract? (thunk (g 3 2)))
+      (check-exn exn:fail:contract? (thunk (g 3)))))
 
    (test-suite
     "hash-function/c"
