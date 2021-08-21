@@ -42,7 +42,7 @@ As the forms also compose, complex contracts exhibiting phrase structure have co
 
 @section{What if I Don't See the Contract I Need?}
 
-If the appropriate contract does not exist and you believe that the data you are attempting to describe is relatively general or common (e.g. you've needed this contract more than once, and suspect that others might, as well), consider @hyperlink["https://github.com/countvajhula/social-contract/issues"]{bringing it up} for possible addition. With enough support or motivation, it will be added.
+If you believe that the data you are describing could be expressed more economically than the forms allow, or if an appropriate contract is missing altogether and seems relatively general or common (e.g. you've needed this contract more than once, and suspect that others might, as well), consider @hyperlink["https://github.com/countvajhula/social-contract/issues"]{bringing it up} for possible addition. With enough support or motivation, it will be added.
 
 @section{How Do I Migrate My Existing Contracts?}
 
@@ -82,7 +82,7 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 )]{
  A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type. It could also optionally accept any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying a @racket[paramspec] form, in which the signifier @racket[head] means that these arguments appear before @racket[type/c] in the function signature, while @racket[tail] means that they appear after @racket[type/c].
 
- @racket[self-map/c] is equivalent to @racket[(-> type/c type/c)], and for instance, @racket[(self-map/c list? (head number?))] is equivalent to @racket[(-> number? list? list?)].
+ @racket[self-map/c] in general is equivalent to @racket[(-> type/c type/c)], and for instance, @racket[(self-map/c list? (head number?))] is equivalent to @racket[(-> number? list? list?)].
 
 @examples[
     #:eval eval-for-docs
@@ -163,7 +163,7 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
               ([paramspec (code:line (head arg/c ...))
                           (code:line (tail arg/c ...))])]
 )]{
-  A contract to recognize a @hyperlink["https://beautifulracket.com/appendix/glossary.html#variadic"]{variadic} function, that is, a function taking an arbitrary number of arguments. The arguments in general are expected to all be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. Any number of extra arguments may be indicated via the @racket[paramspec], which is the same as that used in @racket[self-map/c] and @racket[operation/c]. If no contract is specified for the return value, it defaults to @racket[any/c].
+  A contract to recognize a @hyperlink["https://beautifulracket.com/appendix/glossary.html#variadic"]{variadic} function, that is, a function taking an arbitrary number of arguments. The arguments in general are expected to all be of type @racket[source/c], and the return value is expected to be of type @racket[target/c]. Any number of extra arguments may be indicated via the @racket[paramspec], which works the same as it does in @racket[self-map/c] and @racket[operation/c]. If no contract is specified for the return value, it defaults to @racket[any/c], and using the contract in identifier form simply as @racket[variadic-function/c] assumes all contracts are @racket[any/c].
 
  @racket[variadic-function/c] in general is equivalent to @racket[(-> source/c ... target/c)].
 
@@ -335,9 +335,9 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defidform[classifier/c]
 @defform[#:link-target? #f (classifier/c by-type/c)]
 )]{
- A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function.
+ A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function. If the contract is used as @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{an identifier}, @racket[by-type/c] defaults to @racket[any/c].
 
-Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequenceof sequence?))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
+Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c integer?)))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
 
 @examples[
     #:eval eval-for-docs
@@ -354,7 +354,7 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
 @defform[#:link-target? #f (map/c source/c)]
 @defform[#:link-target? #f (map/c source/c target/c)]
 )]{
- A contract to recognize a function that maps a function over a sequence of values. The input sequence is expected to contain values of type @racket[source/c] and the mapping function is expected to be of type @racket[(-> source/c target/c)], so that the result of the contractually bound function is expected to be of type @racket[(sequenceof target/c)]. @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c] if neither is specified, and the same if only one is specified.
+ A contract to recognize a function that maps a function over a sequence of values. The input sequence is expected to contain values of type @racket[source/c] and the mapping function is expected to be of type @racket[(-> source/c target/c)], so that the result of the contractually bound function is expected to be of type @racket[(sequenceof target/c)]. @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c] if neither is specified (i.e. if the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}), and the same if only one is specified.
 
  Equivalent to @racket[(binary-function/c (function/c source/c target/c) (sequenceof source/c) (sequenceof target/c))] or @racket[(-> (-> source/c target/c) (sequenceof source/c) (sequenceof target/c))].
 
@@ -372,9 +372,9 @@ Equivalent to @racket[(binary-function/c (encoder/c by-type/c) sequence? (sequen
 @defidform[filter/c]
 @defform[#:link-target? #f (filter/c type/c)]
 )]{
- A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. @racket[type/c] is assumed to be @racket[any/c] if left unspecified.
+ A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}, @racket[type/c] is assumed to be @racket[any/c].
 
- Equivalent to @racket[(binary-function/c (predicate/c type/c) (sequenceof type/c) (sequenceof type/c))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
+ Equivalent to @racket[(self-map/c (sequenceof type/c) (head (predicate/c type/c)))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
 
 @examples[
     #:eval eval-for-docs
