@@ -350,9 +350,9 @@ Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c integer?)))]
 }
 
 @deftogether[(
-@defidform[map/c]
-@defform[#:link-target? #f (map/c source/c)]
-@defform[#:link-target? #f (map/c source/c target/c)]
+@defidform[mapper/c]
+@defform[#:link-target? #f (mapper/c source/c)]
+@defform[#:link-target? #f (mapper/c source/c target/c)]
 )]{
  A contract to recognize a function that maps a function over a sequence of values. The input sequence is expected to contain values of type @racket[source/c] and the mapping function is expected to be of type @racket[(-> source/c target/c)], so that the result of the contractually bound function is expected to be of type @racket[(sequenceof target/c)]. @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c] if neither is specified (i.e. if the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}), and the same if only one is specified.
 
@@ -361,7 +361,7 @@ Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c integer?)))]
 @examples[
     #:eval eval-for-docs
     (define/contract (stringify-numbers fn lst)
-      (map/c number? string?)
+      (mapper/c number? string?)
       (map fn lst))
     (stringify-numbers number->string (list 1 2 3 4))
 	(eval:error (stringify-numbers number->string (list "1" "2" "3" "4")))

@@ -176,13 +176,13 @@
        (check-equal? (translate (-> (-> any/c number?) list? (listof list?))) '(classifier/c number?)))
 
       (test-suite
-       "map/c"
-       (check-equal? (translate (-> (-> number? string?) (sequenceof number?) (sequenceof string?))) '(map/c number? string?))
-       (check-equal? (translate (-> (-> any/c any/c) (sequenceof any/c) (sequenceof any/c))) 'map/c)
-       (check-equal? (translate (-> (-> any/c any/c) (listof any/c) (listof any/c))) 'map/c)
-       (check-equal? (translate (-> (-> any/c any/c) sequence? sequence?)) 'map/c)
-       (check-equal? (translate (-> (-> any/c any/c) list? list?)) 'map/c)
-       (check-equal? (translate (-> (-> number? string?) (listof number?) (listof string?))) '(map/c number? string?)))
+       "mapper/c"
+       (check-equal? (translate (-> (-> number? string?) (sequenceof number?) (sequenceof string?))) '(mapper/c number? string?))
+       (check-equal? (translate (-> (-> any/c any/c) (sequenceof any/c) (sequenceof any/c))) 'mapper/c)
+       (check-equal? (translate (-> (-> any/c any/c) (listof any/c) (listof any/c))) 'mapper/c)
+       (check-equal? (translate (-> (-> any/c any/c) sequence? sequence?)) 'mapper/c)
+       (check-equal? (translate (-> (-> any/c any/c) list? list?)) 'mapper/c)
+       (check-equal? (translate (-> (-> number? string?) (listof number?) (listof string?))) '(mapper/c number? string?)))
 
       (test-suite
        "filter/c"

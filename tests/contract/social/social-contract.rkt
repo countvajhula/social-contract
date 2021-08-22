@@ -677,11 +677,11 @@
       (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5)))))
 
    (test-suite
-    "map/c"
+    "mapper/c"
     (test-case
         "Basic"
       (define/contract (g mapf lst)
-        (map/c string? number?)
+        (mapper/c string? number?)
         (when (not (empty? lst))
           (mapf (first lst)))
         (list 5))
@@ -692,7 +692,7 @@
     (test-case
         "Defaults with no parameters"
       (define/contract (g mapf lst)
-        map/c
+        mapper/c
         (when (not (empty? lst))
           (mapf (first lst)))
         (list 5))
@@ -703,7 +703,7 @@
     (test-case
         "Default output contract"
       (define/contract (g mapf lst)
-        (map/c number?)
+        (mapper/c number?)
         (when (not (empty? lst))
           (mapf (first lst)))
         (list 5))

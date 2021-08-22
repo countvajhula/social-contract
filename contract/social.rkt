@@ -36,7 +36,7 @@
          binary-composition/c
          variadic-composition/c
          classifier/c
-         map/c
+         mapper/c
          filter/c
          reducer/c
          functional/c
@@ -202,12 +202,12 @@
                            (head (encoder/c by-type/c)))]
   [_:id #'(classifier/c any/c)])
 
-(define-syntax-parser map/c
+(define-syntax-parser mapper/c
   [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
                                               (sequenceof source/c)
                                               (sequenceof target/c))]
-  [(_ source/c) #'(map/c source/c source/c)]
-  [_:id #'(map/c any/c any/c)])
+  [(_ source/c) #'(mapper/c source/c source/c)]
+  [_:id #'(mapper/c any/c any/c)])
 
 (define-syntax-parser filter/c
   [(_ type/c) #'(self-map/c (sequenceof type/c)

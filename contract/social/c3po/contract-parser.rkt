@@ -249,16 +249,16 @@
   (or/p (try/p (parametric-sequence/p (identifier/p 'any/c)))
         (try/p sequence/p)))
 
-(define generic-map-binary/p
+(define generic-mapper-binary/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     (identifier/p 'function/c)
     generic-sequence/p
     generic-sequence/p
     (token/p 'CLOSE-PAREN)
-    (pure 'map/c)))
+    (pure 'mapper/c)))
 
-(define generic-map-self-map/p
+(define generic-mapper-self-map/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'self-map/c)
     (or/p (try/p generic-sequence/p)
@@ -268,9 +268,9 @@
     (identifier/p 'function/c)
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure 'map/c)))
+    (pure 'mapper/c)))
 
-(define specific-map/p
+(define specific-mapper/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     (token/p 'OPEN-PAREN)
@@ -283,16 +283,16 @@
     (token/p 'CLOSE-PAREN)
     (if (and (equal? a (second c)) (equal? b (second d)))
         (if (equal? a b)
-            (pure (list 'map/c a))
-            (pure (list 'map/c a b)))
+            (pure (list 'mapper/c a))
+            (pure (list 'mapper/c a b)))
         (fail/p (message (srcloc #f #f #f #f #f)
                          a
                          (list "map function contracts don't match sequence element type"))))))
 
-(define map/p
-  (or/p (try/p generic-map-self-map/p)
-        (try/p generic-map-binary/p)
-        (try/p specific-map/p)))
+(define mapper/p
+  (or/p (try/p generic-mapper-self-map/p)
+        (try/p generic-mapper-binary/p)
+        (try/p specific-mapper/p)))
 
 (define generic-filter/p
   (do (token/p 'OPEN-PAREN)
@@ -883,7 +883,7 @@
         (try/p binary-composition/p)
         (try/p variadic-composition/p)
         (try/p classifier/p)
-        (try/p map/p)
+        (try/p mapper/p)
         (try/p filter/p)
         (try/p functional/p)
         (try/p variadic-constructor/p)
