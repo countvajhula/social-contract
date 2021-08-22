@@ -249,7 +249,7 @@
   (or/p (try/p (parametric-sequence/p (identifier/p 'any/c)))
         (try/p sequence/p)))
 
-(define generic-map/p
+(define generic-map-binary/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'binary-function/c)
     (identifier/p 'function/c)
@@ -258,7 +258,7 @@
     (token/p 'CLOSE-PAREN)
     (pure 'map/c)))
 
-(define generic-self-map/p
+(define generic-map-self-map/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'self-map/c)
     (or/p (try/p generic-sequence/p)
@@ -290,8 +290,8 @@
                          (list "map function contracts don't match sequence element type"))))))
 
 (define map/p
-  (or/p (try/p generic-map/p)
-        (try/p generic-self-map/p)
+  (or/p (try/p generic-map-self-map/p)
+        (try/p generic-map-binary/p)
         (try/p specific-map/p)))
 
 (define generic-filter/p
@@ -379,17 +379,19 @@
     [b <- contract/p]
     [target <- contract/p]
     (token/p 'CLOSE-PAREN)
-    (cond [(and (all-equal? (append (list a b target) doms)))
+    (cond [(all-equal? (append (list a b target) doms))
            (fail/p (message (srcloc #f #f #f #f #f)
                             b
                             (list "contracts cannot all be the same")))]
-          [(equal? b target)
+          [(and (equal? b target)
+                (not (eq? 'any/c b)))
            (pure (list 'self-map/c target (list* 'head a doms)))]
-          [(equal? a target)
+          [(and (equal? a target)
+                (not (eq? 'any/c a)))
            (pure (list 'self-map/c target (list* 'tail (append doms (list b)))))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
-                                 b
-                                 (list "output contract does not match first or last input contract")))])))
+                                 target
+                                 (list "output contract does not match first or last input contract, or matching contract is any/c which is not acceptable")))])))
 
 (define parametrized-self-map-binary/p
   (do (token/p 'OPEN-PAREN)
@@ -402,13 +404,15 @@
            (fail/p (message (srcloc #f #f #f #f #f)
                             b
                             (list "contracts cannot all be the same")))]
-          [(equal? a c)
+          [(and (equal? a c)
+                (not (eq? 'any/c a)))
            (pure (list 'self-map/c a (list 'tail b)))]
-          [(equal? b c)
+          [(and (equal? b c)
+                (not (eq? 'any/c a)))
            (pure (list 'self-map/c b (list 'head a)))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
-                                 b
-                                 (list "output contract does not match unrepeated input contract")))])))
+                                 c
+                                 (list "output contract does not match unrepeated input contract, or matching contract is any/c which is not acceptable")))])))
 
 (define self-map/p
   (or/p (try/p self-map-simple/p)
