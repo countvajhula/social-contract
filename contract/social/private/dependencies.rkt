@@ -69,7 +69,7 @@ need to handle that in the parser for the new form.
         'binary-composition/c '(binary-operation/c)
         'binary-constructor/c '(self-map/c)
         'binary-predicate/c '(binary-function/c)
-        'classifier/c '(encoder/c binary-function/c)
+        'classifier/c '(lift/c encoder/c)
         'decoder/c '(function/c)
         'encoder/c '(function/c)
         'lift/c '(function/c)

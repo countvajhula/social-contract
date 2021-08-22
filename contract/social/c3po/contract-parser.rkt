@@ -139,30 +139,44 @@
                          (list "can't decode from any/c")))
         (pure (list 'decoder/c a)))))
 
-(define lift-simple/p
-  (do (token/p 'OPEN-PAREN)
-      (identifier/p 'function/c)
-    [a <- contract/p]
-    (token/p 'OPEN-PAREN)
-    [b <- contract/p]
-    [c <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (token/p 'CLOSE-PAREN)
-    (if (equal? a c)
-        (pure (list 'lift/c a b))
-        (fail/p (message (srcloc #f #f #f #f #f)
-                         a
-                         (list "parametric output contract doesn't match input"))))))
-
 (define (parametric-contract/p p)
   (do (token/p 'OPEN-PAREN)
       [c <- contract/p]
     [d <- contract/p]
+    (token/p 'CLOSE-PAREN)
     (if (equal? p d)
         (pure (list c d))
         (fail/p (message (srcloc #f #f #f #f #f)
                          c
                          (list "parametric output contract doesn't match input"))))))
+
+(define lift-simple/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- contract/p]
+    [b <- (parametric-contract/p a)]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a (second b))
+        (pure (list 'lift/c a (first b)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         a
+                         (list "parametric output contract doesn't match input"))))))
+
+(define lift-binary/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    [c <- (or/p (try/p (parametric-contract/p a))
+                (try/p (parametric-contract/p b)))]
+    (token/p 'CLOSE-PAREN)
+    (cond [(equal? a (second c))
+           (pure (list 'lift/c a (first c) (list 'tail b)))]
+          [(equal? b (second c))
+           (pure (list 'lift/c b (first c) (list 'head a)))]
+          [else (fail/p (message (srcloc #f #f #f #f #f)
+                            a
+                            (list "parametric output contract doesn't match input")))])))
 
 (define lift-with-head/p
   (do (token/p 'OPEN-PAREN)
@@ -188,6 +202,7 @@
 
 (define lift/p
   (or/p (try/p lift-simple/p)
+        (try/p lift-binary/p)
         (try/p lift-with-head/p)
         (try/p lift-with-tail/p)))
 
@@ -200,14 +215,18 @@
 
 (define classifier/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
+      (identifier/p 'lift/c)
+    [a <- contract/p]
+    [b <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
     (token/p 'OPEN-PAREN)
     (identifier/p 'encoder/c) ; note: does not recognize classifying by any/c
-    [a <- contract/p]
+    [c <- contract/p]
     (token/p 'CLOSE-PAREN)
-    sequence/p
-    (parametric-sequence/p sequence/p)
-    (pure (list 'classifier/c a))))
+    (token/p 'CLOSE-PAREN)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'classifier/c c))))
 
 (define sequence/p
   (or/p (try/p (identifier/p 'sequence?))

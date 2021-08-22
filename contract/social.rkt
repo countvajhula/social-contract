@@ -197,9 +197,9 @@
    #'(variadic-function/c type/c type/c type/c)])
 
 (define-syntax-parser classifier/c
-  [(_ by-type/c) #'(binary-function/c (encoder/c by-type/c)
-                                      sequence?
-                                      (sequenceof sequence?))]
+  [(_ by-type/c) #'(lift/c sequence?
+                           sequenceof
+                           (head (encoder/c by-type/c)))]
   [_:id #'(classifier/c any/c)])
 
 (define-syntax-parser map/c
