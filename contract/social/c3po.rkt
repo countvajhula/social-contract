@@ -176,6 +176,19 @@
        (check-equal? (translate (-> (-> any/c number?) list? (listof list?))) '(classifier/c number?)))
 
       (test-suite
+       "map/c"
+       (check-equal? (translate (-> (sequenceof number?) (sequenceof string?))) '(map/c number? string?))
+       (check-equal? (translate (-> (sequenceof any/c) (sequenceof any/c))) 'map/c)
+       (check-equal? (translate (-> (listof any/c) (listof any/c))) 'map/c)
+       (check-equal? (translate (-> sequence? sequence?)) 'map/c)
+       (check-equal? (translate (-> list? list?)) 'map/c)
+       (check-equal? (translate (-> (listof number?) (listof string?))) '(map/c number? string?))
+       (check-equal? (translate (-> number? list? list?)) '(map/c any/c (head number?)))
+       (check-equal? (translate (-> list? number? list?)) '(map/c any/c (tail number?)))
+       (check-equal? (translate (-> number? (listof string?) (listof symbol?))) '(map/c string? symbol? (head number?)))
+       (check-equal? (translate (-> (listof string?) number? (listof symbol?))) '(map/c string? symbol? (tail number?))))
+
+      (test-suite
        "mapper/c"
        (check-equal? (translate (-> (-> number? string?) (sequenceof number?) (sequenceof string?))) '(mapper/c number? string?))
        (check-equal? (translate (-> (-> any/c any/c) (sequenceof any/c) (sequenceof any/c))) 'mapper/c)
@@ -239,9 +252,9 @@
       (test-suite
        "edge cases"
        (check-equal? (translate (-> (function/c number? string?) (sequenceof string?) (sequenceof number?)))
-                     '(binary-function/c (function/c number? string?) (sequenceof string?) (sequenceof number?)))
+                     '(map/c string? number? (head (function/c number? string?))))
        (check-equal? (translate (-> (-> number? string?) (sequenceof string?) (sequenceof number?)))
-                     '(binary-function/c (function/c number? string?) (sequenceof string?) (sequenceof number?)))
+                     '(map/c string? number? (head (function/c number? string?))))
        (check-equal? (translate (function/c any/c list? any/c))
                      '(binary-function/c any/c list? any/c))
        (check-equal? (translate (binary-function/c any/c list? any/c))

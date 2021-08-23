@@ -215,9 +215,9 @@
 
 (define classifier/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'lift/c)
-    [a <- contract/p]
-    [b <- contract/p]
+      (identifier/p 'map/c)
+    [a <- (identifier/p 'any/c)]
+    [b <- generic-sequence/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (token/p 'OPEN-PAREN)
@@ -246,23 +246,66 @@
     (pure (list 'sequenceof a)))) ; all parametric sequences get converted to sequenceof, for now
 
 (define generic-sequence/p
-  (or/p (try/p (parametric-sequence/p (identifier/p 'any/c)))
-        (try/p sequence/p)))
+  (do (or/p (try/p (parametric-sequence/p (identifier/p 'any/c)))
+            (try/p sequence/p))
+      (pure (list 'sequenceof 'any/c))))
 
-(define generic-mapper-binary/p
+;; (define any-sequence/p
+;;   (or/p (try/p generic-sequence/p)
+;;         (try/p (parametric-sequence/p))))
+
+(define map-simple/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
-    (identifier/p 'function/c)
-    generic-sequence/p
-    generic-sequence/p
+      (identifier/p 'function/c)
+    [a <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
+    [b <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
     (token/p 'CLOSE-PAREN)
-    (pure 'mapper/c)))
+    (if (and (equal? a b)
+             (eq? 'any/c (second a)))
+        (pure 'map/c)
+        (pure (list 'map/c (second a) (second b))))))
 
-(define generic-mapper-self-map/p
+(define map-with-head/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'self-map/c)
-    (or/p (try/p generic-sequence/p)
-          (try/p (parametric-sequence/p (identifier/p 'any/c))))
+      (identifier/p 'function/c)
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [a <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
+    [b <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a b)
+        (pure (list 'map/c (second a) (list* 'head args)))
+        (pure (list 'map/c (second a) (second b) (list* 'head args))))))
+
+(define map-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    [b <- (or/p (try/p generic-sequence/p)
+                (try/p (parametric-sequence/p)))]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? a b)
+        (pure (list 'map/c (second a) (list* 'tail args)))
+        (pure (list 'map/c (second a) (second b) (list* 'tail args))))))
+
+(define map/p
+  (or/p (try/p map-simple/p)
+        (try/p map-with-head/p)
+        (try/p map-with-tail/p)))
+
+(define generic-mapper/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'map/c)
+    (identifier/p 'any/c)
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (identifier/p 'function/c)
@@ -272,32 +315,33 @@
 
 (define specific-mapper/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'binary-function/c)
-    (token/p 'OPEN-PAREN)
-    (identifier/p 'function/c)
+      (identifier/p 'map/c)
     [a <- contract/p]
     [b <- contract/p]
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'head)
+    (token/p 'OPEN-PAREN)
+    (identifier/p 'function/c)
+    [c <- contract/p]
+    [d <- contract/p]
     (token/p 'CLOSE-PAREN)
-    [c <- (parametric-sequence/p)]
-    [d <- (parametric-sequence/p)]
     (token/p 'CLOSE-PAREN)
-    (if (and (equal? a (second c)) (equal? b (second d)))
-        (if (equal? a b)
-            (pure (list 'mapper/c a))
-            (pure (list 'mapper/c a b)))
+    (token/p 'CLOSE-PAREN)
+    (if (and (equal? a c)
+             (equal? b d))
+        (pure (list 'mapper/c a b))
         (fail/p (message (srcloc #f #f #f #f #f)
-                         a
+                         (list a b c d)
                          (list "map function contracts don't match sequence element type"))))))
 
 (define mapper/p
-  (or/p (try/p generic-mapper-self-map/p)
-        (try/p generic-mapper-binary/p)
+  (or/p (try/p generic-mapper/p)
         (try/p specific-mapper/p)))
 
 (define generic-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'self-map/c)
-    generic-sequence/p
+      (identifier/p 'map/c)
+    (identifier/p 'any/c)
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (identifier/p 'predicate/c)
@@ -307,17 +351,17 @@
 
 (define specific-filter/p
   (do (token/p 'OPEN-PAREN)
-      (identifier/p 'self-map/c)
-    [b <- (parametric-sequence/p)]
+      (identifier/p 'map/c)
+    [a <- contract/p]
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (token/p 'OPEN-PAREN)
     (identifier/p 'predicate/c)
-    [a <- contract/p]
+    [b <- contract/p]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (if (equal? a (second b))
+    (if (equal? a b)
         (pure (list 'filter/c a))
         (fail/p (message (srcloc #f #f #f #f #f)
                          a
@@ -865,6 +909,7 @@
         (try/p function/p)
         (try/p thunk/p)
         (try/p operation/p)
+        (try/p map/p)
         (try/p self-map/p)
         (try/p binary-function/p)
         (try/p binary-operation/p)

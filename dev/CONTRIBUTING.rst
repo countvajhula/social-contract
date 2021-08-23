@@ -13,13 +13,15 @@ Adding a New Contract
 
 6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser would typically be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
 
-7. Run the tests for C3PO and verify that the new tests pass.
+7. Add the parser to the ``contract/p`` parser. Where you place it doesn't matter in relation to parsers that have more, fewer, or orthogonal dependencies to the new parser. But for parsers with the same dependencies, place more specific parsers earlier, and less specific ones later. Specific in this sense: if parser A would accept inputs p and q while parser B would accept only p, then parser B is the more specific one. This ensures that the new parser doesn't need to handle cases framed in terms of peers, only predecessors.
 
-8. Are there any specific instances of higher-level contracts (i.e. those that appear near or after the new contract in the topological ordering) that ought to be simplified to this new contract? If so, add tests for such simplifications in ``contract/social/c3po.rkt`` (you'll find other tests for simplifications, as examples).
+8. Run the tests for C3PO and verify that the new tests pass.
 
-9. Implement parsers for the new contract for the special cases in #8.
+9. Are there any specific instances of higher-level contracts (i.e. those that appear near or after the new contract in the topological ordering) that ought to be simplified to this new contract? If so, add tests for such simplifications in ``contract/social/c3po.rkt`` (you'll find other tests for simplifications, as examples).
 
-10. Re-run tests and ensure they pass.
+10. Implement parsers for the new contract for the special cases in #8.
+
+11. Re-run tests and ensure they pass.
 
 Dev Workflow
 ============
