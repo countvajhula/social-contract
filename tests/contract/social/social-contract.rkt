@@ -722,7 +722,25 @@
       (check-equal? (g (list "5") 'hi) (list 5))
       (check-equal? (g null 'hi) (list 5))
       (check-exn exn:fail:contract? (thunk (g 5 'hi)))
-      (check-exn exn:fail:contract? (thunk (g (list 5) 'hi)))))
+      (check-exn exn:fail:contract? (thunk (g (list 5) 'hi))))
+    (test-case
+        "Head parameters with default contracts"
+      (define/contract (g v lst)
+        (map/c (head symbol?))
+        (list 5))
+      (check-equal? (g 'hi (list "5")) (list 5))
+      (check-equal? (g 'hi (list 5)) (list 5))
+      (check-equal? (g 'hi null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 'hi 5))))
+    (test-case
+        "Head parameters with default contracts"
+      (define/contract (g lst v)
+        (map/c (tail symbol?))
+        (list 5))
+      (check-equal? (g (list "5") 'hi) (list 5))
+      (check-equal? (g (list 5) 'hi) (list 5))
+      (check-equal? (g null 'hi) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5 'hi)))))
 
    (test-suite
     "mapper/c"

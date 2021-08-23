@@ -216,6 +216,10 @@
    #'(map/c source/c source/c (head arg/c ...))]
   [(_ source/c ((~datum tail) arg/c ...))
    #'(map/c source/c source/c (tail arg/c ...))]
+  [(_ ((~datum head) arg/c ...))
+   #'(map/c any/c (head arg/c ...))]
+  [(_ ((~datum tail) arg/c ...))
+   #'(map/c any/c (tail arg/c ...))]
   [(_ source/c target/c)
    #'(function/c (sequenceof source/c)
                  (sequenceof target/c))]
