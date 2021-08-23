@@ -332,20 +332,44 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 }
 
 @deftogether[(
-@defidform[classifier/c]
-@defform[#:link-target? #f (classifier/c by-type/c)]
+@defidform[map/c]
+@defform[#:link-target? #f (map/c source/c)]
+@defform[#:link-target? #f (map/c source/c paramspec)]
+@defform[#:link-target? #f (map/c source/c target/c)]
+@defform/subs[#:link-target? #f
+              (map/c source/c target/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
- A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function. If the contract is used as @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{an identifier}, @racket[by-type/c] defaults to @racket[any/c].
+ A contract to recognize a function that maps a @techlink[#:doc '(lib "scribblings/data/collection/collections.scrbl") #:key "generic sequence"]{sequence} to another sequence. The input sequence is expected to contain values of type @racket[source/c], and the output, of type @racket[target/c]. If left unspecified, @racket[target/c] is assumed to be the same as @racket[source/c]. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form} simply as @racket[map/c], both @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c]. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
 
-Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c by-type/c)))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
+ Equivalent in general to @racket[(-> (sequenceof source/c) (sequenceof target/c))].
 
 @examples[
     #:eval eval-for-docs
-    (define/contract (alphabetize key lst)
-      (classifier/c char?)
-      (group-by key lst))
-    (alphabetize (curryr string-ref 0) (list "apple" "banana" "apricot" "cherry" "blackberry"))
-	(eval:error (alphabetize string-upcase (list "apple" "banana" "apricot" "cherry" "blackberry")))
+    (define/contract (rotate n lst)
+      (map/c number? (head number?))
+      (append (drop lst n) (take lst n)))
+    (rotate 3 (list 1 2 3 4 5))
+	(eval:error (rotate 3 (list "a" "p" "p" "l" "e")))
+  ]
+}
+
+@deftogether[(
+@defidform[filter/c]
+@defform[#:link-target? #f (filter/c type/c)]
+)]{
+ A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}, @racket[type/c] is assumed to be @racket[any/c].
+
+ Equivalent to @racket[(map/c type/c (head (predicate/c type/c)))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (filter-numbers pred lst)
+      (filter/c number?)
+      (filter pred lst))
+    (filter-numbers positive? (list -1 2 3 -4 5))
+	(eval:error (filter-numbers positive? (list "1" "2" "3" "4")))
   ]
 }
 
@@ -356,7 +380,7 @@ Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c by-type/c)))
 )]{
  A contract to recognize a function that maps a function over a sequence of values. The input sequence is expected to contain values of type @racket[source/c] and the mapping function is expected to be of type @racket[(-> source/c target/c)], so that the result of the contractually bound function is expected to be of type @racket[(sequenceof target/c)]. @racket[source/c] and @racket[target/c] are assumed to be @racket[any/c] if neither is specified (i.e. if the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}), and the same if only one is specified.
 
- Equivalent to @racket[(binary-function/c (function/c source/c target/c) (sequenceof source/c) (sequenceof target/c))] or @racket[(-> (-> source/c target/c) (sequenceof source/c) (sequenceof target/c))].
+ Equivalent to @racket[(map/c source/c target/c (head (function/c source/c target/c)))] or @racket[(-> (-> source/c target/c) (sequenceof source/c) (sequenceof target/c))].
 
 @examples[
     #:eval eval-for-docs
@@ -365,24 +389,6 @@ Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c by-type/c)))
       (map fn lst))
     (stringify-numbers number->string (list 1 2 3 4))
 	(eval:error (stringify-numbers number->string (list "1" "2" "3" "4")))
-  ]
-}
-
-@deftogether[(
-@defidform[filter/c]
-@defform[#:link-target? #f (filter/c type/c)]
-)]{
- A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}, @racket[type/c] is assumed to be @racket[any/c].
-
- Equivalent to @racket[(self-map/c (sequenceof type/c) (head (predicate/c type/c)))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
-
-@examples[
-    #:eval eval-for-docs
-    (define/contract (filter-numbers pred lst)
-      (filter/c number?)
-      (filter pred lst))
-    (filter-numbers positive? (list -1 2 3 -4 5))
-	(eval:error (filter-numbers positive? (list "1" "2" "3" "4")))
   ]
 }
 
@@ -404,6 +410,24 @@ Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c by-type/c)))
       (apply + lst))
     (my-sum (list 1 2 3 4))
 	(eval:error (my-sum (list "1" "2" "3" "4")))
+  ]
+}
+
+@deftogether[(
+@defidform[classifier/c]
+@defform[#:link-target? #f (classifier/c by-type/c)]
+)]{
+ A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function. If the contract is used as @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{an identifier}, @racket[by-type/c] defaults to @racket[any/c].
+
+Equivalent to @racket[(map/c any/c sequence? (head (encoder/c by-type/c)))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (alphabetize key lst)
+      (classifier/c char?)
+      (group-by key lst))
+    (alphabetize (curryr string-ref 0) (list "apple" "banana" "apricot" "cherry" "blackberry"))
+	(eval:error (alphabetize string-upcase (list "apple" "banana" "apricot" "cherry" "blackberry")))
   ]
 }
 
