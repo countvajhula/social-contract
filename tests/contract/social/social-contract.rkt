@@ -677,6 +677,54 @@
       (check-exn exn:fail:contract? (thunk (g (curryr remainder 3) 5)))))
 
    (test-suite
+    "map/c"
+    (test-case
+        "Basic"
+      (define/contract (g lst)
+        (map/c string? number?)
+        (list 5))
+      (check-equal? (g (list "5")) (list 5))
+      (check-equal? (g null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5)))
+      (check-exn exn:fail:contract? (thunk (g (list 5)))))
+    (test-case
+        "Defaults with no parameters"
+      (define/contract (g lst)
+        map/c
+        (list 5))
+      (check-equal? (g (list "5")) (list 5))
+      (check-equal? (g (list 5)) (list 5))
+      (check-equal? (g null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Default output contract"
+      (define/contract (g lst)
+        (map/c number?)
+        (list 5))
+      (check-equal? (g (list 5)) (list 5))
+      (check-equal? (g null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g (list "5"))))
+      (check-exn exn:fail:contract? (thunk (g 5))))
+    (test-case
+        "Head parameters"
+      (define/contract (g v lst)
+        (map/c string? number? (head symbol?))
+        (list 5))
+      (check-equal? (g 'hi (list "5")) (list 5))
+      (check-equal? (g 'hi null) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 'hi 5)))
+      (check-exn exn:fail:contract? (thunk (g 'hi (list 5)))))
+    (test-case
+        "Tail parameters"
+      (define/contract (g lst v)
+        (map/c string? number? (tail symbol?))
+        (list 5))
+      (check-equal? (g (list "5") 'hi) (list 5))
+      (check-equal? (g null 'hi) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 5 'hi)))
+      (check-exn exn:fail:contract? (thunk (g (list 5) 'hi)))))
+
+   (test-suite
     "mapper/c"
     (test-case
         "Basic"

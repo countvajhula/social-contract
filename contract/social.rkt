@@ -36,6 +36,7 @@
          binary-composition/c
          variadic-composition/c
          classifier/c
+         map/c
          mapper/c
          filter/c
          reducer/c
@@ -202,16 +203,35 @@
                            (head (encoder/c by-type/c)))]
   [_:id #'(classifier/c any/c)])
 
+(define-syntax-parser map/c
+  [(_ source/c target/c ((~datum head) arg/c ...))
+   #'(function/c arg/c ...
+                 (sequenceof source/c)
+                 (sequenceof target/c))]
+  [(_ source/c target/c ((~datum tail) arg/c ...))
+   #'(function/c (sequenceof source/c)
+                 arg/c ...
+                 (sequenceof target/c))]
+  [(_ source/c ((~datum head) arg/c ...))
+   #'(map/c source/c source/c (head arg/c ...))]
+  [(_ source/c ((~datum tail) arg/c ...))
+   #'(map/c source/c source/c (tail arg/c ...))]
+  [(_ source/c target/c)
+   #'(function/c (sequenceof source/c)
+                 (sequenceof target/c))]
+  [(_ source/c)
+   #'(map/c source/c source/c)]
+  [_:id #'(map/c any/c any/c)])
+
 (define-syntax-parser mapper/c
-  [(_ source/c target/c) #'(binary-function/c (function/c source/c target/c)
-                                              (sequenceof source/c)
-                                              (sequenceof target/c))]
+  [(_ source/c target/c) #'(map/c source/c
+                                  target/c
+                                  (head (function/c source/c target/c)))]
   [(_ source/c) #'(mapper/c source/c source/c)]
-  [_:id #'(mapper/c any/c any/c)])
+  [_:id #'(mapper/c any/c)])
 
 (define-syntax-parser filter/c
-  [(_ type/c) #'(self-map/c (sequenceof type/c)
-                            (head (predicate/c type/c)))]
+  [(_ type/c) #'(map/c type/c (head (predicate/c type/c)))]
   [_:id #'(filter/c any/c)])
 
 (define-syntax-parser reducer/c

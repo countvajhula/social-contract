@@ -337,7 +337,7 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 )]{
  A contract to recognize a function that classifies the elements of the input sequence into distinct classes based on some key function. If the contract is used as @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{an identifier}, @racket[by-type/c] defaults to @racket[any/c].
 
-Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c integer?)))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
+Equivalent to @racket[(lift/c sequence? sequenceof (head (encoder/c by-type/c)))] or @racket[(-> (-> any/c by-type/c) sequence? (sequenceof sequence?))].
 
 @examples[
     #:eval eval-for-docs

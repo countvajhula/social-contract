@@ -49,6 +49,7 @@ need to handle that in the parser for the new form.
         'binary-composition/c
         'variadic-composition/c
         'classifier/c
+        'map/c
         'mapper/c
         'filter/c
         'reducer/c
@@ -73,10 +74,11 @@ need to handle that in the parser for the new form.
         'decoder/c '(function/c)
         'encoder/c '(function/c)
         'lift/c '(function/c)
-        'filter/c '(predicate/c self-map/c)
+        'filter/c '(predicate/c map/c)
         'functional/c '(self-map/c)
         'hash-function/c '(encoder/c)
-        'mapper/c '(function/c binary-function/c)
+        'map/c '(function/c)
+        'mapper/c '(function/c map/c)
         'predicate/c '(function/c)
         'reducer/c '(function/c)
         'self-map/c '(function/c)
