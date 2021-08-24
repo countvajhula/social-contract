@@ -183,8 +183,8 @@
        (check-equal? (translate (-> sequence? sequence?)) 'map/c)
        (check-equal? (translate (-> list? list?)) 'map/c)
        (check-equal? (translate (-> (listof number?) (listof string?))) '(map/c number? string?))
-       (check-equal? (translate (-> number? list? list?)) '(map/c any/c (head number?)))
-       (check-equal? (translate (-> list? number? list?)) '(map/c any/c (tail number?)))
+       (check-equal? (translate (-> number? list? list?)) '(map/c (head number?)))
+       (check-equal? (translate (-> list? number? list?)) '(map/c (tail number?)))
        (check-equal? (translate (-> number? (listof string?) (listof symbol?))) '(map/c string? symbol? (head number?)))
        (check-equal? (translate (-> (listof string?) number? (listof symbol?))) '(map/c string? symbol? (tail number?))))
 

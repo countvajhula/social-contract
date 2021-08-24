@@ -279,7 +279,9 @@
                 (try/p (parametric-sequence/p)))]
     (token/p 'CLOSE-PAREN)
     (if (equal? a b)
-        (pure (list 'map/c (second a) (list* 'head args)))
+        (if (eq? 'any/c (second a))
+            (pure (list 'map/c (list* 'head args)))
+            (pure (list 'map/c (second a) (list* 'head args))))
         (pure (list 'map/c (second a) (second b) (list* 'head args))))))
 
 (define map-with-tail/p
@@ -294,7 +296,9 @@
                 (try/p (parametric-sequence/p)))]
     (token/p 'CLOSE-PAREN)
     (if (equal? a b)
-        (pure (list 'map/c (second a) (list* 'tail args)))
+        (if (eq? 'any/c (second a))
+            (pure (list 'map/c (list* 'tail args)))
+            (pure (list 'map/c (second a) (list* 'tail args))))
         (pure (list 'map/c (second a) (second b) (list* 'tail args))))))
 
 (define map/p
@@ -305,7 +309,6 @@
 (define generic-mapper/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'map/c)
-    (identifier/p 'any/c)
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (identifier/p 'function/c)
@@ -341,7 +344,6 @@
 (define generic-filter/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'map/c)
-    (identifier/p 'any/c)
     (token/p 'OPEN-PAREN)
     (identifier/p 'head)
     (identifier/p 'predicate/c)
