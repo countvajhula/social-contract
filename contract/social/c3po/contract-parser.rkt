@@ -305,10 +305,72 @@
             (pure (list 'map/c (second a) (list* 'tail args))))
         (pure (list 'map/c (second a) (second b) (list* 'tail args))))))
 
+(define paramspec-head/p
+  (do (identifier/p 'head)
+      [args <- (many/p #:min 1 contract/p)]
+    (pure (list* 'head args))))
+
+(define paramspec-tail/p
+  (do (identifier/p 'tail)
+      [args <- (many/p #:min 1 contract/p)]
+    (pure (list* 'tail args))))
+
+(define paramspec/p
+  (do (token/p 'OPEN-PAREN)
+      [spec <- (or/p (try/p paramspec-head/p)
+                     (try/p paramspec-tail/p))]
+    (token/p 'CLOSE-PAREN)
+    (pure spec)))
+
+(define parsed-self-map-without-paramspec/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'self-map/c)
+    [a <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list a null))))
+
+(define parsed-self-map-with-paramspec/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'self-map/c)
+    [a <- contract/p]
+    [spec <- paramspec/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list a spec))))
+
+(define parsed-self-map/p
+  (or/p (try/p parsed-self-map-with-paramspec/p)
+        (try/p parsed-self-map-without-paramspec/p)))
+
+(define generic-sequence-types (list 'list? 'sequence? 'vector?))
+
+(define parametric-sequence-types (list 'listof 'sequenceof 'vectorof))
+
+(define map-simplify-self-map/p
+  (do [a <- parsed-self-map/p]
+      (match-let ([(list ctc spec) a])
+        (if (list? ctc)
+            (if (memq (first ctc) ; ((sequenceof int?) ??)
+                      parametric-sequence-types)
+                (if (null? spec)
+                    (pure (list 'map/c (second ctc)))
+                    (pure (list 'map/c (second ctc) spec)))
+                (fail/p (message (srcloc #f #f #f #f #f)
+                                 a
+                                 (list "self-map is not on a known sequence type"))))
+            (if (memq ctc ; (sequence? ??)
+                      generic-sequence-types)
+                (if (null? spec)
+                    (pure 'map/c)
+                    (pure (list 'map/c spec)))
+                (fail/p (message (srcloc #f #f #f #f #f)
+                                 a
+                                 (list "self-map is not on a known sequence type"))))))))
+
 (define map/p
   (or/p (try/p map-simple/p)
         (try/p map-with-head/p)
-        (try/p map-with-tail/p)))
+        (try/p map-with-tail/p)
+        (try/p map-simplify-self-map/p)))
 
 (define generic-mapper/p
   (do (token/p 'OPEN-PAREN)
