@@ -1,5 +1,9 @@
 #lang racket
 
+;;;
+;;; See dev/CONTRIBUTING.rst for guidelines on adding new parsers
+;;;
+
 (require megaparsack
          megaparsack/parser-tools/lex
          data/monad

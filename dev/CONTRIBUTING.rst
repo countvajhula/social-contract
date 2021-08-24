@@ -7,9 +7,9 @@ Adding a New Contract
 
 3. Add the contract to the list of ``nodes`` of the dependencies graph in ``contract/social/private/dependencies.rkt``, and also as a key in ``ctc-graph``. For every contract used in the new contract's definition (in ``contract/social.rkt``), add a corresponding entry in the values in ``ctc-graph`` for the new contract key.
 
-4. Add tests in ``contract/social/c3po.rkt`` to verify that the new contract can be parsed by C3PO from a representation in terms of Racket's built-in contract DSL. These tests should fail initially since we haven't written the parser yet.
+4. Execute ``dependencies.rkt`` to get the fresh topological ordering of contracts -- this will help you modify the C3PO parser to handle the new contract correctly.
 
-5. Execute ``dependencies.rkt`` to get the fresh topological ordering of contracts -- this will help you modify the C3PO parser to handle the new contract correctly.
+5. Add tests in ``contract/social/c3po.rkt`` to verify that the new contract can be parsed by C3PO from a representation in terms of Racket's built-in contract DSL. These tests should fail initially since we haven't written the parser yet.
 
 6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser would typically be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
 
