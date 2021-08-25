@@ -178,6 +178,7 @@
       (test-suite
        "map/c"
        (check-equal? (translate (-> (sequenceof number?) (sequenceof string?))) '(map/c number? string?))
+       (check-equal? (translate (-> (sequenceof number?) (sequenceof number?))) '(map/c number?))
        (check-equal? (translate (-> (sequenceof any/c) (sequenceof any/c))) 'map/c)
        (check-equal? (translate (-> (listof any/c) (listof any/c))) 'map/c)
        (check-equal? (translate (-> sequence? sequence?)) 'map/c)

@@ -266,9 +266,10 @@
     [b <- (or/p (try/p generic-sequence/p)
                 (try/p (parametric-sequence/p)))]
     (token/p 'CLOSE-PAREN)
-    (if (and (equal? a b)
-             (eq? 'any/c (second a)))
-        (pure 'map/c)
+    (if (equal? a b)
+        (if (eq? 'any/c (second a))
+            (pure 'map/c)
+            (pure (list 'map/c (second a))))
         (pure (list 'map/c (second a) (second b))))))
 
 (define map-with-head/p
