@@ -358,24 +358,6 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 }
 
 @deftogether[(
-@defidform[filter/c]
-@defform[#:link-target? #f (filter/c type/c)]
-)]{
- A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}, @racket[type/c] is assumed to be @racket[any/c].
-
- Equivalent to @racket[(map/c type/c (head (predicate/c type/c)))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
-
-@examples[
-    #:eval eval-for-docs
-    (define/contract (filter-numbers pred lst)
-      (filter/c number?)
-      (filter pred lst))
-    (filter-numbers positive? (list -1 2 3 -4 5))
-	(eval:error (filter-numbers positive? (list "1" "2" "3" "4")))
-  ]
-}
-
-@deftogether[(
 @defidform[mapper/c]
 @defform[#:link-target? #f (mapper/c source/c)]
 @defform[#:link-target? #f (mapper/c source/c target/c)]
@@ -391,6 +373,28 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
       (map fn lst))
     (stringify-numbers number->string (list 1 2 3 4))
 	(eval:error (stringify-numbers number->string (list "1" "2" "3" "4")))
+  ]
+}
+
+@deftogether[(
+@defidform[filter/c]
+@defform[#:link-target? #f (filter/c type/c)]
+)]{
+ A contract to recognize a function that filters a sequence using a predicate. The input sequence is expected to contain values of type @racket[type/c]. The predicate is expected to be on @racket[type/c] values as well, and the output is expected to be of the same type as the input. If the contract is used in @techlink[#:key "identifier macro" #:doc '(lib "scribblings/guide/guide.scrbl")]{identifier form}, @racket[type/c] is assumed to be @racket[any/c].
+
+ Equivalent to @racket[(map/c type/c (head (predicate/c type/c)))] or @racket[(-> (-> type/c boolean?) (sequenceof type/c) (sequenceof type/c))].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (take-while pred lst)
+      (filter/c number?)
+      (if (or (null? lst)
+              (not (pred (car lst))))
+          null
+          (cons (car lst)
+                (take-while pred (cdr lst)))))
+    (take-while positive? (list 4 2 7 -1 2 3 -4 5))
+    (eval:error (take-while positive? (list "1" "2" "3" "4")))
   ]
 }
 
