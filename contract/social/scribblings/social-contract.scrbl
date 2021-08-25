@@ -50,6 +50,8 @@ In addition to the forms in @racket[contract/social], this collection also inclu
 
 @section{Contracts}
 
+@subsection{Basic and Arity-Based Forms}
+
 @deftogether[(
 @defidform[function/c]
 @defform[#:link-target? #f
@@ -74,33 +76,6 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 }
 
 @deftogether[(
-@defform[(self-map/c type/c)]
-@defform/subs[#:link-target? #f
-              (self-map/c type/c paramspec)
-              ([paramspec (code:line (head arg/c ...))
-                          (code:line (tail arg/c ...))])]
-)]{
- A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type. It could also optionally accept any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying a @racket[paramspec] form, in which the signifier @racket[head] means that these arguments appear before @racket[type/c] in the function signature, while @racket[tail] means that they appear after @racket[type/c].
-
- @racket[self-map/c] in general is equivalent to @racket[(-> type/c type/c)], and for instance, @racket[(self-map/c list? (head number?))] is equivalent to @racket[(-> number? list? list?)].
-
-@examples[
-    #:eval eval-for-docs
-    (define/contract (double n)
-      (self-map/c natural-number/c)
-      (* n 2))
-    (double 5)
-    (eval:error (double "hello"))
-
-    (define/contract (prefix str n)
-      (self-map/c string? (tail natural-number/c))
-      (substring str 0 n))
-    (prefix "apple" 3)
-    (eval:error (prefix (list 1 2 3 4 5) 3))
-  ]
-}
-
-@deftogether[(
 @defidform[thunk/c]
 @defform[#:link-target? #f
          (thunk/c target/c)]
@@ -121,12 +96,6 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
       "hello!")
     (eval:error (hello-button))
   ]
-}
-
-@defidform[functional/c]{
- A contract to recognize a function that accepts a function and returns another function. Not to be confused with @racket[function/c], "functional" is a term used to refer to @hyperlink["https://en.wikipedia.org/wiki/Higher-order_function"]{higher-order functions}.
-
- Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
 }
 
 @deftogether[(
@@ -178,6 +147,65 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
   ]
 }
 
+@subsection{Transformations}
+
+@deftogether[(
+@defform[(self-map/c type/c)]
+@defform/subs[#:link-target? #f
+              (self-map/c type/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
+)]{
+ A contract to recognize a @hyperlink["https://proofwiki.org/wiki/Definition:Self-Map"]{self-map}, i.e. a function that maps a value of type @racket[type/c] to a value of the same type. It could also optionally accept any (but a specific) number of additional arguments. The number and the types of these additional arguments are indicated by supplying a @racket[paramspec] form, in which the signifier @racket[head] means that these arguments appear before @racket[type/c] in the function signature, while @racket[tail] means that they appear after @racket[type/c].
+
+ @racket[self-map/c] in general is equivalent to @racket[(-> type/c type/c)], and for instance, @racket[(self-map/c list? (head number?))] is equivalent to @racket[(-> number? list? list?)].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (double n)
+      (self-map/c natural-number/c)
+      (* n 2))
+    (double 5)
+    (eval:error (double "hello"))
+
+    (define/contract (prefix str n)
+      (self-map/c string? (tail natural-number/c))
+      (substring str 0 n))
+    (prefix "apple" 3)
+    (eval:error (prefix (list 1 2 3 4 5) 3))
+  ]
+}
+
+@defidform[functional/c]{
+ A contract to recognize a function that accepts a function and returns another function. Not to be confused with @racket[function/c], "functional" is a term used to refer to @hyperlink["https://en.wikipedia.org/wiki/Higher-order_function"]{higher-order functions}.
+
+ Equivalent to @racket[(self-map/c procedure?)] or @racket[(-> procedure? procedure?)].
+}
+
+@deftogether[(
+@defform[(binary-constructor/c primitive/c composite/c)]
+@defform[#:link-target? #f (binary-constructor/c #:order order primitive/c composite/c)]
+@defform[(variadic-constructor/c primitive/c composite/c)]
+@defform[#:link-target? #f (variadic-constructor/c #:order order primitive/c composite/c)]
+)]{
+  Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type incorporating the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs. Note that the @racket[order] parameter controls the order in which the @emph{contracted function} expects arguments, not the present forms. That is, regardless of the order specified using @racket[order], the first argument to these contract forms is always @racket[primitive/c], and the second argument is always @racket[composite/c].
+
+ This contract is equivalent to @racket[self-map/c] when the latter expects a single additional argument, and in such cases the appropriate contract should be selected based on whether the function actually entails a notion of "construction" or not.
+
+ @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
+
+@examples[
+    #:eval eval-for-docs
+    (define/contract (my-cons elem lst)
+      (binary-constructor/c any/c list?)
+      (cons elem lst))
+    (my-cons "apple" (list "banana" "cherry"))
+	(eval:error (my-cons "apple" "banana"))
+  ]
+}
+
+@subsection{Operations}
+
 @deftogether[(
 @defform[(operation/c n source/c target/c)]
 @defform[#:link-target? #f
@@ -213,6 +241,24 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 }
 
 @deftogether[(
+@defform[(composition/c n type/c)]
+@defform[#:link-target? #f (composition/c n type/c paramspec)]
+@defform[(binary-composition/c type/c)]
+@defform[#:link-target? #f (binary-composition/c n type/c paramspec)]
+@defform[(variadic-composition/c type/c)]
+@defform/subs[#:link-target? #f
+              (variadic-composition/c type/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
+)]{
+  Similar to @racket[operation/c], @racket[binary-function/c] and @racket[variadic-function/c], but these contracts expect the input types and the output type to match, i.e. they recognize functions that @emph{compose} values of some type.
+
+  @racket[binary-composition/c] is equivalent to @racket[(-> type/c type/c type/c)]; @racket[variadic-composition/c] is equivalent to @racket[(-> type/c ... type/c)]; and for instance, @racket[(composition/c 3 type/c)] is equivalent to @racket[(-> type/c type/c type/c type/c)].
+}
+
+@subsection{Encoding}
+
+@deftogether[(
 @defidform[predicate/c]
 @defform[#:link-target? #f
          (predicate/c source/c)]
@@ -242,26 +288,7 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @racket[encoder/c] is equivalent to @racket[(-> any/c as-type/c)], @racket[decoder/c] is equivalent to @racket[(-> from-type/c any/c)], and @racket[hash-function/c] is equivalent to @racket[(-> any/c fixnum?)].
 }
 
-@deftogether[(
-@defform[(lift/c pure/c functor/c)]
-@defform/subs[#:link-target? #f
-              (lift/c pure/c functor/c paramspec)
-              ([paramspec (code:line (head arg/c ...))
-                          (code:line (tail arg/c ...))])]
-)]{
- A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof]. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
-
- Equivalent in general to @racket[(-> pure/c (functor/c pure/c))].
-
-@examples[
-    #:eval eval-for-docs
-    (define/contract (my-range n)
-      (lift/c number? listof)
-      (range n))
-    (my-range 5)
-    (eval:error (my-range "5"))
-  ]
-}
+@subsection{Data}
 
 @deftogether[(
 @defform[(maybe/c type/c)]
@@ -293,41 +320,26 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
   ]
 }
 
+@subsection{Sequences}
+
 @deftogether[(
-@defform[(composition/c n type/c)]
-@defform[#:link-target? #f (composition/c n type/c paramspec)]
-@defform[(binary-composition/c type/c)]
-@defform[#:link-target? #f (binary-composition/c n type/c paramspec)]
-@defform[(variadic-composition/c type/c)]
+@defform[(lift/c pure/c functor/c)]
 @defform/subs[#:link-target? #f
-              (variadic-composition/c type/c paramspec)
+              (lift/c pure/c functor/c paramspec)
               ([paramspec (code:line (head arg/c ...))
                           (code:line (tail arg/c ...))])]
 )]{
-  Similar to @racket[operation/c], @racket[binary-function/c] and @racket[variadic-function/c], but these contracts expect the input types and the output type to match, i.e. they recognize functions that @emph{compose} values of some type.
+ A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof]. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
 
-  @racket[binary-composition/c] is equivalent to @racket[(-> type/c type/c type/c)]; @racket[variadic-composition/c] is equivalent to @racket[(-> type/c ... type/c)]; and for instance, @racket[(composition/c 3 type/c)] is equivalent to @racket[(-> type/c type/c type/c type/c)].
-}
-
-@deftogether[(
-@defform[(binary-constructor/c primitive/c composite/c)]
-@defform[#:link-target? #f (binary-constructor/c #:order order primitive/c composite/c)]
-@defform[(variadic-constructor/c primitive/c composite/c)]
-@defform[#:link-target? #f (variadic-constructor/c #:order order primitive/c composite/c)]
-)]{
-  Similar to @racket[binary-function/c] and @racket[variadic-function/c], but these contracts are specialized to recognize @racket[cons]-style constructors that take primitive data and an instance of a rich data type and yield a fresh instance of the rich type incorporating the primitive data. @racket[order] should be either @racket['abb] or @racket['bab], reflecting the intended order of the primitive and composite inputs. Note that the @racket[order] parameter controls the order in which the @emph{contracted function} expects arguments, not the present forms. That is, regardless of the order specified using @racket[order], the first argument to these contract forms is always @racket[primitive/c], and the second argument is always @racket[composite/c].
-
- This contract is equivalent to @racket[self-map/c] when the latter expects a single additional argument, and in such cases the appropriate contract should be selected based on whether the function actually entails a notion of "construction" or not.
-
- @racket[binary-constructor/c] is equivalent to @racket[(-> primitive/c composite/c composite/c)] or @racket[(-> composite/c primitive/c composite/c)], depending on the indicated @racket[order], and @racket[variadic-constructor/c] is equivalent to @racket[(-> primitive/c ... composite/c composite/c)] or @racket[(-> composite/c primitive/c ... composite/c)].
+ Equivalent in general to @racket[(-> pure/c (functor/c pure/c))].
 
 @examples[
     #:eval eval-for-docs
-    (define/contract (my-cons elem lst)
-      (binary-constructor/c any/c list?)
-      (cons elem lst))
-    (my-cons "apple" (list "banana" "cherry"))
-	(eval:error (my-cons "apple" "banana"))
+    (define/contract (my-range n)
+      (lift/c number? listof)
+      (range n))
+    (my-range 5)
+    (eval:error (my-range "5"))
   ]
 }
 
