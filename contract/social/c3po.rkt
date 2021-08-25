@@ -360,6 +360,22 @@
                      '(provide (contract-out [c (->* ((function/c a b) (self-map/c a))
                                                      (#:key (function/c a b) (self-map/c a))
                                                      #:rest (function/c a b)
-                                                     (self-map/c a))])))))))
+                                                     (self-map/c a))]))))
+      (test-suite
+       "special cases"
+       (check-equal? (translate
+                      (provide abc
+                               (contract-out
+                                (struct gen ((primitive generator?)))
+                                [f (function/c a (values any/c a))]
+                                [g (binary-function/c function/c a a)]
+                                [h (binary-function/c predicate/c a a)])))
+                     '(provide abc
+                               (contract-out
+                                (struct gen ((primitive generator?)))
+                                [f (function/c a (values any/c a))]
+                                [g (self-map/c a (head function/c))]
+                                [h (self-map/c a (head predicate/c))]))
+                     "contract-out including a struct form")))))
 
   (void (run-tests c3po-tests)))

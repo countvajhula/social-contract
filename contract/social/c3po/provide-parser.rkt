@@ -14,10 +14,10 @@
 (define contracted-function/p
   (do (token/p 'OPEN-PAREN)
       [id <- (identifier/p)]
-    [ctc <- (or/p (try/p contract/p)
-                  symex/p)]
+    [ctcs <- (many/p (or/p (try/p contract/p)
+                           symex/p))]
     (token/p 'CLOSE-PAREN)
-    (pure (list id ctc))))
+    (pure (list* id ctcs))))
 
 (define contract-out/p
   (do (token/p 'OPEN-PAREN)
