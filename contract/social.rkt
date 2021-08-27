@@ -116,6 +116,12 @@
   [(_ source/c target/c ((~datum head) arg/c ...))
    #:with ··· (quote-syntax ...)
    #'(function/c arg/c ... source/c ··· target/c)]
+  [(_ source/c ((~datum head) arg/c ...))
+   #:with ··· (quote-syntax ...)
+   #'(function/c arg/c ... source/c ··· any/c)]
+  [(_ source/c ((~datum tail) arg/c ...))
+   #:with ··· (quote-syntax ...)
+   #'(function/c source/c ··· arg/c ... any/c)]
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(function/c source/c ··· target/c)]

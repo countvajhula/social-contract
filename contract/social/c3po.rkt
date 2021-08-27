@@ -259,7 +259,9 @@
        (check-equal? (translate (function/c any/c list? any/c))
                      '(binary-function/c any/c list? any/c))
        (check-equal? (translate (binary-function/c any/c list? any/c))
-                     '(binary-function/c any/c list? any/c)))
+                     '(binary-function/c any/c list? any/c))
+       (check-equal? (translate (-> procedure? any/c ... any/c))
+                     '(variadic-function/c any/c (head procedure?))))
 
       (test-suite
        "simplify social contracts"
