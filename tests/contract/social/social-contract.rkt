@@ -876,6 +876,46 @@
       (check-equal? (g null 'hi) 5)
       (check-exn exn:fail:contract? (thunk (g (list 1 2) 'hi)))
       (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 5 'hi))))
+    (test-case
+        "Input contract only, with head params"
+      (define/contract (g . as)
+        (reducer/c number? (head symbol?))
+        5)
+      (check-equal? (g 'hi (list 1 2)) 5)
+      (check-equal? (g 'hi null) 5)
+      (check-exn exn:fail:contract? (thunk (g 'hi (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 'hi 5))))
+    (test-case
+        "Input contract only, with tail params"
+      (define/contract (g . as)
+        (reducer/c number? (tail symbol?))
+        5)
+      (check-equal? (g (list 1 2) 'hi) 5)
+      (check-equal? (g null 'hi) 5)
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2") 'hi)))
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 5 'hi))))
+    (test-case
+        "Default contracts with head params"
+      (define/contract (g . as)
+        (reducer/c (head symbol?))
+        5)
+      (check-equal? (g 'hi (list 1 2)) 5)
+      (check-equal? (g 'hi null) 5)
+      (check-equal? (g 'hi (list "1" "2")) 5)
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 'hi 5))))
+    (test-case
+        "Default contracts with tail params"
+      (define/contract (g . as)
+        (reducer/c (tail symbol?))
+        5)
+      (check-equal? (g (list 1 2) 'hi) 5)
+      (check-equal? (g null 'hi) 5)
+      (check-equal? (g (list "1" "2") 'hi) 5)
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
       (check-exn exn:fail:contract? (thunk (g 5 'hi)))))
 
    (test-suite

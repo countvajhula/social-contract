@@ -253,12 +253,12 @@
    #'(function/c (sequenceof type/c)
                  arg/c ...
                  target/c)]
-  [(_ type/c target/c) #'(function/c (sequenceof type/c)
-                                     target/c)]
   [(_ type/c ((~datum head) arg/c ...))
    #'(reducer/c type/c type/c (head arg/c ...))]
   [(_ type/c ((~datum tail) arg/c ...))
    #'(reducer/c type/c type/c (tail arg/c ...))]
+  [(_ type/c target/c) #'(function/c (sequenceof type/c)
+                                     target/c)]
   [(_ ((~datum head) arg/c ...))
    #'(reducer/c any/c (head arg/c ...))]
   [(_ ((~datum tail) arg/c ...))
