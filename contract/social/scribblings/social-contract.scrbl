@@ -414,12 +414,18 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defidform[reducer/c]
 @defform[#:link-target? #f (reducer/c type/c)]
 @defform[#:link-target? #f (reducer/c type/c target/c)]
+@defform[#:link-target? #f (reducer/c paramspec)]
+@defform[#:link-target? #f (reducer/c type/c paramspec)]
+@defform/subs[#:link-target? #f
+              (reducer/c type/c target/c paramspec)
+              ([paramspec (code:line (head arg/c ...))
+                          (code:line (tail arg/c ...))])]
 )]{
-  A contract to recognize functions that consume a sequence and produce a value. The sequence is expected to contain values of type @racket[type/c], and the result is expected to be of type @racket[target/c].
+  A contract to recognize functions that consume a sequence and produce a value. The sequence is expected to contain values of type @racket[type/c], and the result is expected to be of type @racket[target/c]. Any number of extra arguments may be indicated using a @racket[paramspec], just like in other forms such as @racket[self-map/c].
 
- If @racket[target/c] is not specified, it is assumed to be @racket[type/c].
+ If @racket[target/c] is not specified, it is assumed to be @racket[type/c]. If @racket[type/c] isn't specified either, they are both assumed to be @racket[any/c].
 
- @racket[reducer/c] is equivalent to @racket[(function/c (sequenceof type/c) target/c)] or @racket[(-> (sequenceof type/c) target/c)].
+ @racket[reducer/c] is in general equivalent to @racket[(function/c (sequenceof type/c) target/c)] or @racket[(-> (sequenceof type/c) target/c)].
 
 @examples[
     #:eval eval-for-docs

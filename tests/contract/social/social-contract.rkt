@@ -856,7 +856,27 @@
       (check-equal? (g (list 1 2)) 5)
       (check-equal? (g null) 5)
       (check-exn exn:fail:contract? (thunk (g 5)))
-      (check-exn exn:fail:contract? (thunk (g (list "a" "b"))))))
+      (check-exn exn:fail:contract? (thunk (g (list "a" "b")))))
+    (test-case
+        "With head params"
+      (define/contract (g . as)
+        (reducer/c string? number? (head symbol?))
+        5)
+      (check-equal? (g 'hi (list "a" "b")) 5)
+      (check-equal? (g 'hi null) 5)
+      (check-exn exn:fail:contract? (thunk (g 'hi (list 1 2))))
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 'hi 5))))
+    (test-case
+        "With tail params"
+      (define/contract (g . as)
+        (reducer/c string? number? (tail symbol?))
+        5)
+      (check-equal? (g (list "a" "b") 'hi) 5)
+      (check-equal? (g null 'hi) 5)
+      (check-exn exn:fail:contract? (thunk (g (list 1 2) 'hi)))
+      (check-exn exn:fail:contract? (thunk (g (list "1" "2"))))
+      (check-exn exn:fail:contract? (thunk (g 5 'hi)))))
 
    (test-suite
     "functional/c"

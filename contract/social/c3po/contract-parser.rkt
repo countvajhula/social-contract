@@ -440,7 +440,7 @@
   (or/p (try/p generic-filter/p)
         (try/p specific-filter/p)))
 
-(define generic-reducer/p
+(define generic-reducer-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
     generic-sequence/p
@@ -448,7 +448,34 @@
     (token/p 'CLOSE-PAREN)
     (pure 'reducer/c)))
 
-(define specific-reducer/p
+(define generic-reducer-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    generic-sequence/p
+    (identifier/p 'any/c)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'reducer/c (list* 'head args)))))
+
+(define generic-reducer-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    generic-sequence/p
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    (identifier/p 'any/c)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'reducer/c (list* 'tail args)))))
+
+(define generic-reducer/p
+  (or/p (try/p generic-reducer-simple/p)
+        (try/p generic-reducer-with-head/p)
+        (try/p generic-reducer-with-tail/p)))
+
+(define specific-reducer-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
     [a <- (parametric-sequence/p)]
@@ -457,6 +484,37 @@
     (if (equal? (second a) b)
         (pure (list 'reducer/c b))
         (pure (list 'reducer/c (second a) b)))))
+
+(define specific-reducer-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [a <- (parametric-sequence/p)]
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? (second a) b)
+        (pure (list 'reducer/c b (list* 'head args)))
+        (pure (list 'reducer/c (second a) b (list* 'head args))))))
+
+(define specific-reducer-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- (parametric-sequence/p)]
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    [b <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? (second a) b)
+        (pure (list 'reducer/c b (list* 'tail args)))
+        (pure (list 'reducer/c (second a) b (list* 'tail args))))))
+
+(define specific-reducer/p
+  (or/p (try/p specific-reducer-simple/p)
+        (try/p specific-reducer-with-head/p)
+        (try/p specific-reducer-with-tail/p)))
 
 (define reducer/p
   (or/p (try/p generic-reducer/p)
@@ -980,6 +1038,7 @@
         (try/p operation/p)
         (try/p map/p)
         (try/p self-map/p)
+        (try/p reducer/p)
         (try/p binary-function/p)
         (try/p binary-operation/p)
         (try/p composition/p)
@@ -987,7 +1046,6 @@
         (try/p predicate/p)
         (try/p binary-predicate/p)
         (try/p variadic-predicate/p)
-        (try/p reducer/p)
         (try/p encoder/p)
         (try/p decoder/p)
         (try/p lift/p)

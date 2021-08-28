@@ -216,7 +216,11 @@
        (check-equal? (translate (-> sequence? any/c)) 'reducer/c)
        (check-equal? (translate (-> list? any/c)) 'reducer/c)
        (check-equal? (translate (-> (listof number?) number?)) '(reducer/c number?))
-       (check-equal? (translate (-> (listof number?) string?)) '(reducer/c number? string?)))
+       (check-equal? (translate (-> (listof number?) string?)) '(reducer/c number? string?))
+       (check-equal? (translate (-> symbol? (listof number?) string?)) '(reducer/c number? string? (head symbol?)))
+       (check-equal? (translate (-> (listof number?) symbol? string?)) '(reducer/c number? string? (tail symbol?)))
+       (check-equal? (translate (-> symbol? (listof number?) number?)) '(reducer/c number? (head symbol?)))
+       (check-equal? (translate (-> symbol? (listof any/c) any/c)) '(reducer/c (head symbol?))))
 
       (test-suite
        "composition"
@@ -257,7 +261,7 @@
        (check-equal? (translate (-> (-> number? string?) (sequenceof string?) (sequenceof number?)))
                      '(map/c string? number? (head (function/c number? string?))))
        (check-equal? (translate (function/c any/c list? any/c))
-                     '(binary-function/c any/c list? any/c))
+                     '(reducer/c (head any/c)))
        (check-equal? (translate (binary-function/c any/c list? any/c))
                      '(binary-function/c any/c list? any/c))
        (check-equal? (translate (-> procedure? any/c ... any/c))
