@@ -323,13 +323,17 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @subsection{Sequences}
 
 @deftogether[(
-@defform[(lift/c pure/c functor/c)]
+@defidform[lift/c]
+@defform[#:link-target? #f (lift/c pure/c)]
+@defform[#:link-target? #f (lift/c pure/c functor/c)]
+@defform[#:link-target? #f (lift/c paramspec)]
+@defform[#:link-target? #f (lift/c pure/c paramspec)]
 @defform/subs[#:link-target? #f
               (lift/c pure/c functor/c paramspec)
               ([paramspec (code:line (head arg/c ...))
                           (code:line (tail arg/c ...))])]
 )]{
- A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof]. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
+ A contract to recognize a function that "lifts" a value of type @racket[pure/c] into a container of type @racket[functor/c]. Typically @racket[functor/c] would be a parametric sequence type such as @racket[listof] or @racket[sequenceof], and if left unspecified it is assumed to be the latter. Any number of extra arguments may be indicated by using a @racket[paramspec] form, which works the same as in other contracts like @racket[self-map/c].
 
  Equivalent in general to @racket[(-> pure/c (functor/c pure/c))].
 
