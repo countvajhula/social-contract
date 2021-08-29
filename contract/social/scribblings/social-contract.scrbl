@@ -367,6 +367,8 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
     (rotate 3 (list 1 2 3 4 5))
 	(eval:error (rotate 3 (list "a" "p" "p" "l" "e")))
   ]
+
+@history[#:changed "2.0" @elem{The former @racket[map/c] was renamed to @racket[mapper/c] and this more versatile version was introduced as @racket[map/c].}]
 }
 
 @deftogether[(
