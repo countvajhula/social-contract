@@ -531,7 +531,49 @@
       (check-equal? (g 5 "1") (list 5))
       (check-exn exn:fail:contract? (thunk (g "5" "4")))
       (check-exn exn:fail:contract? (thunk (g 3 2)))
-      (check-exn exn:fail:contract? (thunk (g 3)))))
+      (check-exn exn:fail:contract? (thunk (g 3))))
+    (test-case
+        "Default functor contract"
+      (define/contract (g v)
+        (lift/c number?)
+        (list v))
+      (check-equal? (g 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g "5"))))
+    (test-case
+        "Default functor contract with head"
+      (define/contract (g a v)
+        (lift/c number? (head string?))
+        (list v))
+      (check-equal? (g "a" 5) (list 5))
+      (check-exn exn:fail:contract? (thunk (g 1 5))))
+    (test-case
+        "Default functor contract with tail"
+      (define/contract (g v a)
+        (lift/c number? (tail string?))
+        (list v))
+      (check-equal? (g 5 "a") (list 5))
+      (check-exn exn:fail:contract? (thunk (g 1 5))))
+    (test-case
+        "All default contracts"
+      (define/contract (g v)
+        lift/c
+        (list v))
+      (check-equal? (g 5) (list 5))
+      (check-equal? (g "5") (list "5")))
+    (test-case
+        "All default contracts w head"
+      (define/contract (g a v)
+        (lift/c (head string?))
+        (list v))
+      (check-equal? (g "a" 5) (list 5))
+      (check-equal? (g "a" "5") (list "5")))
+    (test-case
+        "All default contracts w tail"
+      (define/contract (g v a)
+        (lift/c (tail string?))
+        (list v))
+      (check-equal? (g 5 "a") (list 5))
+      (check-equal? (g "5" "a") (list "5"))))
 
    (test-suite
     "hash-function/c"

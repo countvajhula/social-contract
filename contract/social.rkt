@@ -161,12 +161,23 @@
   (function/c from-type/c any/c))
 
 (define-syntax-parser lift/c
+  [(_ ((~datum head) arg/c ...))
+   #'(lift/c any/c sequenceof (head arg/c ...))]
+  [(_ ((~datum tail) arg/c ...))
+   #'(lift/c any/c sequenceof (tail arg/c ...))]
+  [(_ pure/c ((~datum head) arg/c ...))
+   #'(lift/c pure/c sequenceof (head arg/c ...))]
+  [(_ pure/c ((~datum tail) arg/c ...))
+   #'(lift/c pure/c sequenceof (tail arg/c ...))]
   [(_ pure/c functor/c)
    #'(function/c pure/c (functor/c pure/c))]
   [(_ pure/c functor/c ((~datum head) arg/c ...))
    #'(function/c arg/c ... pure/c (functor/c pure/c))]
   [(_ pure/c functor/c ((~datum tail) arg/c ...))
-   #'(function/c pure/c arg/c ... (functor/c pure/c))])
+   #'(function/c pure/c arg/c ... (functor/c pure/c))]
+  [(_ pure/c)
+   #'(lift/c pure/c sequenceof)]
+  [_:id #'(lift/c any/c)])
 
 (define-syntax-parser hash-function/c
   [_:id #'(encoder/c fixnum?)])

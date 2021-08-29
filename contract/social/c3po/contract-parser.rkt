@@ -154,6 +154,41 @@
                          c
                          (list "parametric output contract doesn't match input"))))))
 
+(define lift-nonparametric-simple/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- (identifier/p 'any/c)]
+    [b <- generic-sequence/p]
+    (token/p 'CLOSE-PAREN)
+    (pure 'lift/c)))
+
+(define lift-nonparametric-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
+                         contract/p))]
+    [a <- (identifier/p 'any/c)]
+    [b <- generic-sequence/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'lift/c (list* 'head args)))))
+
+(define lift-nonparametric-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'function/c)
+    [a <- (identifier/p 'any/c)]
+    [args <- (many/p #:min 1
+                     (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
+                         contract/p))]
+    [b <- generic-sequence/p]
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'lift/c (list* 'tail args)))))
+
+(define lift-nonparametric/p
+  (or/p (try/p lift-nonparametric-simple/p)
+        (try/p lift-nonparametric-with-head/p)
+        (try/p lift-nonparametric-with-tail/p)))
+
 (define lift-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
@@ -161,7 +196,11 @@
     [b <- (parametric-contract/p a)]
     (token/p 'CLOSE-PAREN)
     (if (equal? a (second b))
-        (pure (list 'lift/c a (first b)))
+        (if (memq (first b) parametric-sequence-types)
+            (if (eq? 'any/c a)
+                (pure 'lift/c)
+                (pure (list 'lift/c a)))
+            (pure (list 'lift/c a (first b))))
         (fail/p (message (srcloc #f #f #f #f #f)
                          a
                          (list "parametric output contract doesn't match input"))))))
@@ -191,7 +230,9 @@
     [a <- contract/p]
     [b <- (parametric-contract/p a)]
     (token/p 'CLOSE-PAREN)
-    (pure (list 'lift/c a (first b) (list* 'head args)))))
+    (if (memq (first b) parametric-sequence-types)
+        (pure (list 'lift/c a (list* 'head args)))
+        (pure (list 'lift/c a (first b) (list* 'head args))))))
 
 (define lift-with-tail/p
   (do (token/p 'OPEN-PAREN)
@@ -202,10 +243,13 @@
                          contract/p))]
     [b <- (parametric-contract/p a)]
     (token/p 'CLOSE-PAREN)
-    (pure (list 'lift/c a (first b) (list* 'tail args)))))
+    (if (memq (first b) parametric-sequence-types)
+        (pure (list 'lift/c a (list* 'tail args)))
+        (pure (list 'lift/c a (first b) (list* 'tail args))))))
 
 (define lift/p
   (or/p (try/p lift-simple/p)
+        (try/p lift-nonparametric/p)
         (try/p lift-binary/p)
         (try/p lift-with-head/p)
         (try/p lift-with-tail/p)))
@@ -1039,6 +1083,7 @@
         (try/p map/p)
         (try/p self-map/p)
         (try/p reducer/p)
+        (try/p lift/p)
         (try/p binary-function/p)
         (try/p binary-operation/p)
         (try/p composition/p)
@@ -1048,7 +1093,6 @@
         (try/p variadic-predicate/p)
         (try/p encoder/p)
         (try/p decoder/p)
-        (try/p lift/p)
         (try/p hash-function/p)
         (try/p maybe/p)
         (try/p nonempty/p)

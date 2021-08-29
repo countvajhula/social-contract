@@ -135,10 +135,20 @@
 
       (test-suite
        "lift/c"
-       (check-equal? (translate (-> number? (listof number?))) '(lift/c number? listof))
-       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number? sequenceof))
-       (check-equal? (translate (-> b c a (listof a))) '(lift/c a listof (head b c)))
-       (check-equal? (translate (-> a b c (listof a))) '(lift/c a listof (tail b c))))
+       (check-equal? (translate (-> number? (listof number?))) '(lift/c number?))
+       (check-equal? (translate (-> number? (maybe/c number?))) '(lift/c number? maybe/c))
+       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number?))
+       (check-equal? (translate (-> b c a (listof a))) '(lift/c a (head b c)))
+       (check-equal? (translate (-> a b c (listof a))) '(lift/c a (tail b c)))
+       (check-equal? (translate (-> b c a (maybe/c a))) '(lift/c a maybe/c (head b c)))
+       (check-equal? (translate (-> a b c (maybe/c a))) '(lift/c a maybe/c (tail b c)))
+       (check-equal? (translate (-> number? (sequenceof number?))) '(lift/c number?))
+       (check-equal? (translate (-> any/c (sequenceof any/c))) 'lift/c)
+       (check-equal? (translate (-> any/c list?)) 'lift/c)
+       (check-equal? (translate (-> string? any/c list?)) '(lift/c (head string?)))
+       (check-equal? (translate (-> any/c string? list?)) '(lift/c (tail string?)))
+       (check-equal? (translate (-> any/c string? (listof string?))) '(lift/c string? (head any/c)))
+       (check-equal? (translate (-> string? any/c (listof string?))) '(lift/c string? (tail any/c))))
 
       (test-suite
        "hash-function/c"
