@@ -247,12 +247,20 @@
         (pure (list 'lift/c a (list* 'tail args)))
         (pure (list 'lift/c a (first b) (list* 'tail args))))))
 
+(define lift-simplify-generic-sequence-encoder/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'encoder/c)
+    [a <- generic-sequence/p]
+    (token/p 'CLOSE-PAREN)
+    (pure 'lift/c)))
+
 (define lift/p
   (or/p (try/p lift-simple/p)
         (try/p lift-nonparametric/p)
         (try/p lift-binary/p)
         (try/p lift-with-head/p)
-        (try/p lift-with-tail/p)))
+        (try/p lift-with-tail/p)
+        (try/p lift-simplify-generic-sequence-encoder/p)))
 
 (define hash-function/p
   (do (token/p 'OPEN-PAREN)
