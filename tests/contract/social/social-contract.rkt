@@ -238,7 +238,21 @@
         (variadic-function/c negative? (tail string?))
         "hello")
       (check-equal? (g -1 -2 -5 "hi") "hello")
-      (check-exn exn:fail:contract? (thunk (g -1 -2 -5)))))
+      (check-exn exn:fail:contract? (thunk (g -1 -2 -5))))
+    (test-case
+        "All default contracts with head"
+      (define/contract (g . as)
+        (variadic-function/c (head string?))
+        5)
+      (check-equal? (g "hi" -1 -2 -5) 5)
+      (check-exn exn:fail:contract? (thunk (g -2 -5))))
+    (test-case
+        "All default contracts with tail"
+      (define/contract (g . as)
+        (variadic-function/c (tail string?))
+        5)
+      (check-equal? (g -1 -2 -5 "hi") 5)
+      (check-exn exn:fail:contract? (thunk (g -2 -5)))))
 
    (test-suite
     "binary-variadic-function/c"

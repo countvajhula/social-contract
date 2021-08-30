@@ -930,11 +930,15 @@
       (match-let ([(list pre var post target) sig])
         (cond [(and (not (null? pre)) (null? post))
                (if (eq? 'any/c target)
-                   (pure (list 'variadic-function/c var (list* 'head pre)))
+                   (if (eq? 'any/c var)
+                       (pure (list 'variadic-function/c (list* 'head pre)))
+                       (pure (list 'variadic-function/c var (list* 'head pre))))
                    (pure (list 'variadic-function/c var target (list* 'head pre))))]
               [(and (not (null? post)) (null? pre))
                (if (eq? 'any/c target)
-                   (pure (list 'variadic-function/c var (list* 'tail post)))
+                   (if (eq? 'any/c var)
+                       (pure (list 'variadic-function/c (list* 'tail post)))
+                       (pure (list 'variadic-function/c var (list* 'tail post))))
                    (pure (list 'variadic-function/c var target (list* 'tail post))))]
               [(and (null? pre) (null? post))
                (if (eq? 'any/c target)

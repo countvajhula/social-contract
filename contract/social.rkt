@@ -118,19 +118,25 @@
    #'(function/c arg/c ... source/c ··· target/c)]
   [(_ source/c ((~datum head) arg/c ...))
    #:with ··· (quote-syntax ...)
-   #'(function/c arg/c ... source/c ··· any/c)]
+   #'(variadic-function/c source/c any/c (head arg/c ...))]
   [(_ source/c ((~datum tail) arg/c ...))
    #:with ··· (quote-syntax ...)
-   #'(function/c source/c ··· arg/c ... any/c)]
+   #'(variadic-function/c source/c any/c (tail arg/c ...))]
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(function/c source/c ··· target/c)]
+  [(_ ((~datum head) arg/c ...))
+   #:with ··· (quote-syntax ...)
+   #'(variadic-function/c any/c (head arg/c ...))]
+  [(_ ((~datum tail) arg/c ...))
+   #:with ··· (quote-syntax ...)
+   #'(variadic-function/c any/c (tail arg/c ...))]
   [(_ source/c)
    #:with ··· (quote-syntax ...)
-   #'(function/c source/c ··· any/c)]
+   #'(variadic-function/c source/c any/c)]
   [_:id
    #:with ··· (quote-syntax ...)
-   #'(function/c any/c ··· any/c)])
+   #'(variadic-function/c any/c any/c)])
 
 (define-syntax-parser predicate/c
   [(_ on-type/c ...) #'(function/c on-type/c ... boolean?)]

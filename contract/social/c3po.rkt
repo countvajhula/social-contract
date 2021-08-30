@@ -66,7 +66,9 @@
        (check-equal? (translate (-> a q b ... c)) '(variadic-function/c b c (head a q)))
        (check-equal? (translate (-> a ... b)) '(variadic-function/c a b))
        (check-equal? (translate (-> a ... any/c)) '(variadic-function/c a))
-       (check-equal? (translate (-> any/c ... any/c)) 'variadic-function/c))
+       (check-equal? (translate (-> any/c ... any/c)) 'variadic-function/c)
+       (check-equal? (translate (-> string? any/c ... any/c)) '(variadic-function/c (head string?)))
+       (check-equal? (translate (-> any/c ... string? any/c)) '(variadic-function/c (tail string?))))
 
       (test-suite
        "operation/c"
@@ -277,7 +279,7 @@
        (check-equal? (translate (binary-function/c any/c list? any/c))
                      '(binary-function/c any/c list? any/c))
        (check-equal? (translate (-> procedure? any/c ... any/c))
-                     '(variadic-function/c any/c (head procedure?))))
+                     '(variadic-function/c (head procedure?))))
 
       (test-suite
        "simplify social contracts"
