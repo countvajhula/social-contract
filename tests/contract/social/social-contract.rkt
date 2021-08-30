@@ -456,7 +456,24 @@
         #t)
       (check-true (g 5))
       (check-true (g "hi"))
-      (check-true (g))))
+      (check-true (g)))
+    (test-case
+        "Defaults with head"
+      (define/contract (g . as)
+        (variadic-predicate/c (head string?))
+        #t)
+      (check-true (g "hi" 5 'hi))
+      (check-true (g "hi"))
+      (check-exn exn:fail:contract? (thunk (g))))
+    (test-case
+        "Defaults with tail"
+      (define/contract (g . as)
+        (variadic-predicate/c (tail string?))
+        #t)
+      (check-true (g 5 'hi "hi"))
+      (check-true (g 5 "hi"))
+      (check-true (g "hi"))
+      (check-exn exn:fail:contract? (thunk (g)))))
 
    (test-suite
     "binary-variadic-predicate/c"

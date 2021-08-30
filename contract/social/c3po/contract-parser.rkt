@@ -956,17 +956,19 @@
     [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c a (list* 'tail args)))))
+    (if (eq? 'any/c a)
+        (pure (list 'variadic-predicate/c (list* 'tail args)))
+        (pure (list 'variadic-predicate/c a (list* 'tail args))))))
 
 (define variadic-predicate-with-tail-b/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'predicate/c)
     [a <- contract/p]
     (token/p 'ELLIPSIS)
-    [args <- (many/p contract/p)]
+    [args <- (many/p #:min 1 contract/p)]
     (token/p 'CLOSE-PAREN)
-    (if (null? args)
-        (pure (list 'variadic-predicate/c a))
+    (if (eq? 'any/c a)
+        (pure (list 'variadic-predicate/c (list* 'tail args)))
         (pure (list 'variadic-predicate/c a (list* 'tail args))))))
 
 (define variadic-predicate-with-head-a/p
@@ -979,20 +981,20 @@
     [args <- (many/p contract/p)]
     (token/p 'CLOSE-PAREN)
     (token/p 'CLOSE-PAREN)
-    (pure (list 'variadic-predicate/c b (list* 'head args)))))
+    (if (eq? 'any/c b)
+        (pure (list 'variadic-predicate/c (list* 'head args)))
+        (pure (list 'variadic-predicate/c b (list* 'head args))))))
 
 (define variadic-predicate-with-head-b/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'predicate/c)
-    [args <- (many/p #:min 0
+    [args <- (many/p #:min 1
                      (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
                          contract/p))]
     [b <- contract/p]
     (token/p 'ELLIPSIS)
     (token/p 'CLOSE-PAREN)
-    (if (null? args)
-        (pure (list 'variadic-predicate/c b))
-        (pure (list 'variadic-predicate/c b (list* 'head args))))))
+    (pure (list 'variadic-predicate/c b (list* 'head args)))))
 
 (define variadic-simple-predicate-a/p
   (do (token/p 'OPEN-PAREN)

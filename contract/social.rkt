@@ -142,10 +142,14 @@
   [_:id #'(binary-predicate/c any/c)])
 
 (define-syntax-parser variadic-predicate/c
-  [(_ a/c ((~datum tail) arg/c ...))
-   #'(variadic-function/c a/c boolean? (tail arg/c ...))]
-  [(_ a/c ((~datum head) arg/c ...))
-   #'(variadic-function/c a/c boolean? (head arg/c ...))]
+  [(_ source/c ((~datum head) arg/c ...))
+   #'(variadic-function/c source/c boolean? (head arg/c ...))]
+  [(_ source/c ((~datum tail) arg/c ...))
+   #'(variadic-function/c source/c boolean? (tail arg/c ...))]
+  [(_ ((~datum head) arg/c ...))
+   #'(variadic-predicate/c any/c (head arg/c ...))]
+  [(_ ((~datum tail) arg/c ...))
+   #'(variadic-predicate/c any/c (tail arg/c ...))]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
   [_:id #'(variadic-predicate/c any/c)])
 

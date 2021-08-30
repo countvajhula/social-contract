@@ -13,7 +13,7 @@ Adding a New Contract
 
 6. Implement a parser for the new contract in ``contract/social/c3po/contract-parser.rkt``. The parser would typically be expressed in terms of its dependencies, i.e. in terms of contracts that appear before it in the output from step 4. See the other contracts in the file as examples.
 
-7. Add the parser to the ``contract/p`` parser. Where you place it doesn't matter in relation to parsers that have more, fewer, or orthogonal dependencies to the new parser. But for parsers with the same dependencies, place more specific parsers earlier, and less specific ones later. Specific in this sense: if parser A would accept inputs p and q while parser B would accept only p, then parser B is the more specific one. This ensures that the new parser doesn't need to handle cases framed in terms of peers, only predecessors.
+7. Add the parser to the ``contract/p`` parser. Where you place it doesn't matter in relation to parsers that have more, fewer, or orthogonal dependencies to the new parser. But for parsers with the same dependencies, place more specific parsers earlier, and less specific ones later. Specific in this sense: if parser A would accept inputs p and q while parser B would accept only p, then parser B is the more specific one. Alternatively, for every input p that is acceptable to both A and B, if you would prefer B to be the interpretation, then place B earlier. This ensures that the new parser doesn't need to handle cases framed in terms of peers, only predecessors.
 
 8. Run the tests for C3PO and verify that the new tests pass.
 

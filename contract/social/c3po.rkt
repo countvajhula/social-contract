@@ -121,7 +121,9 @@
        (check-equal? (translate (-> a ... b c boolean?)) '(variadic-predicate/c a (tail b c)))
        (check-equal? (translate (-> b c a ... boolean?)) '(variadic-predicate/c a (head b c)))
        (check-equal? (translate (-> a ... boolean?)) '(variadic-predicate/c a))
-       (check-equal? (translate (-> any/c ... boolean?)) 'variadic-predicate/c))
+       (check-equal? (translate (-> any/c ... boolean?)) 'variadic-predicate/c)
+       (check-equal? (translate (-> string? any/c ... boolean?)) '(variadic-predicate/c (head string?)))
+       (check-equal? (translate (-> any/c ... string? boolean?)) '(variadic-predicate/c (tail string?))))
 
       (test-suite
        "encoder/c"
