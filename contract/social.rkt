@@ -125,9 +125,6 @@
   [(_ source/c target/c)
    #:with ··· (quote-syntax ...)
    #'(function/c source/c ··· target/c)]
-  [(_ a/c b/c target/c) ; backwards compat - remove later
-   #:with ··· (quote-syntax ...)
-   #'(function/c a/c b/c ··· target/c)]
   [(_ source/c)
    #:with ··· (quote-syntax ...)
    #'(function/c source/c ··· any/c)]
@@ -149,8 +146,6 @@
    #'(variadic-function/c a/c boolean? (tail arg/c ...))]
   [(_ a/c ((~datum head) arg/c ...))
    #'(variadic-function/c a/c boolean? (head arg/c ...))]
-  [(_ a/c b/c) ; backwards compat - remove later
-   #'(variadic-function/c a/c b/c boolean?)]
   [(_ source/c) #'(variadic-function/c source/c boolean?)]
   [_:id #'(variadic-predicate/c any/c)])
 
@@ -210,9 +205,7 @@
   [(_ type/c ((~datum head) arg/c ...))
    #'(variadic-function/c type/c type/c (head arg/c ...))]
   [(_ type/c ((~datum tail) arg/c ...))
-   #'(variadic-function/c type/c type/c (tail arg/c ...))]
-  [(_ type/c _) ; backwards compat - remove later
-   #'(variadic-function/c type/c type/c type/c)])
+   #'(variadic-function/c type/c type/c (tail arg/c ...))])
 
 (define-syntax-parser classifier/c
   [(_ by-type/c) #'(map/c any/c
