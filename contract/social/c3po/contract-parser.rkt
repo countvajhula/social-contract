@@ -211,15 +211,24 @@
     [a <- contract/p]
     [b <- contract/p]
     [c <- (or/p (try/p (parametric-contract/p a))
-                (try/p (parametric-contract/p b)))]
+                (try/p (parametric-contract/p b))
+                (try/p generic-sequence/p))]
     (token/p 'CLOSE-PAREN)
     (cond [(equal? a (second c))
-           (pure (list 'lift/c a (first c) (list 'tail b)))]
+           (if (eq? 'sequenceof (first c))
+               (if (eq? 'any/c a)
+                   (pure (list 'lift/c (list 'tail b)))
+                   (pure (list 'lift/c a (list 'tail b))))
+               (pure (list 'lift/c a (first c) (list 'tail b))))]
           [(equal? b (second c))
-           (pure (list 'lift/c b (first c) (list 'head a)))]
+           (if (eq? 'sequenceof (first c))
+               (if (eq? 'any/c b)
+                   (pure (list 'lift/c (list 'head a)))
+                   (pure (list 'lift/c b (list 'head a))))
+               (pure (list 'lift/c b (first c) (list 'head a))))]
           [else (fail/p (message (srcloc #f #f #f #f #f)
-                            a
-                            (list "parametric output contract doesn't match input")))])))
+                                 a
+                                 (list "parametric output contract doesn't match input")))])))
 
 (define lift-with-head/p
   (do (token/p 'OPEN-PAREN)
