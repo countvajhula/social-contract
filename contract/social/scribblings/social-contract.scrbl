@@ -124,9 +124,11 @@ If used as an @tech[#:doc '(lib "scribblings/guide/guide.scrbl")]{identifier mac
 @defform[#:link-target? #f
          (variadic-function/c source/c)]
 @defform[#:link-target? #f
-         (variadic-function/c source/c paramspec)]
-@defform[#:link-target? #f
          (variadic-function/c source/c target/c)]
+@defform[#:link-target? #f
+         (variadic-function/c paramspec)]
+@defform[#:link-target? #f
+         (variadic-function/c source/c paramspec)]
 @defform/subs[#:link-target? #f
               (variadic-function/c source/c target/c paramspec)
               ([paramspec (code:line (head arg/c ...))
