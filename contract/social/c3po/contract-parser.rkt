@@ -531,10 +531,33 @@
     (token/p 'CLOSE-PAREN)
     (pure (list 'reducer/c (list* 'tail args)))))
 
+(define generic-reducer-binary-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    generic-sequence/p
+    (identifier/p 'any/c)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'reducer/c (list 'head a)))))
+
+(define generic-reducer-binary-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    generic-sequence/p
+    [a <- contract/p]
+    (identifier/p 'any/c)
+    (token/p 'CLOSE-PAREN)
+    (pure (list 'reducer/c (list 'tail a)))))
+
+(define generic-reducer-binary/p
+  (or/p (try/p generic-reducer-binary-with-head/p)
+        (try/p generic-reducer-binary-with-tail/p)))
+
 (define generic-reducer/p
   (or/p (try/p generic-reducer-simple/p)
         (try/p generic-reducer-with-head/p)
-        (try/p generic-reducer-with-tail/p)))
+        (try/p generic-reducer-with-tail/p)
+        (try/p generic-reducer-binary/p)))
 
 (define specific-reducer-simple/p
   (do (token/p 'OPEN-PAREN)
@@ -572,10 +595,41 @@
         (pure (list 'reducer/c b (list* 'tail args)))
         (pure (list 'reducer/c (second a) b (list* 'tail args))))))
 
+(define specific-reducer-binary-with-head/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [a <- contract/p]
+    [b <- (parametric-sequence/p)]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? target (second b))
+        (pure (list 'reducer/c target (list 'head a)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         b
+                         (list "parametric contract doesn't match target"))))))
+
+(define specific-reducer-binary-with-tail/p
+  (do (token/p 'OPEN-PAREN)
+      (identifier/p 'binary-function/c)
+    [b <- (parametric-sequence/p)]
+    [a <- contract/p]
+    [target <- contract/p]
+    (token/p 'CLOSE-PAREN)
+    (if (equal? target (second b))
+        (pure (list 'reducer/c target (list 'tail a)))
+        (fail/p (message (srcloc #f #f #f #f #f)
+                         b
+                         (list "parametric contract doesn't match target"))))))
+
+(define specific-reducer-binary/p
+  (or/p (try/p specific-reducer-binary-with-head/p)
+        (try/p specific-reducer-binary-with-tail/p)))
+
 (define specific-reducer/p
   (or/p (try/p specific-reducer-simple/p)
         (try/p specific-reducer-with-head/p)
-        (try/p specific-reducer-with-tail/p)))
+        (try/p specific-reducer-with-tail/p)
+        (try/p specific-reducer-binary/p)))
 
 (define reducer/p
   (or/p (try/p generic-reducer/p)
