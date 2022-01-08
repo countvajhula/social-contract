@@ -315,17 +315,15 @@
             (try/p sequence/p))
       (pure (list 'sequenceof 'any/c))))
 
-;; (define any-sequence/p
-;;   (or/p (try/p generic-sequence/p)
-;;         (try/p (parametric-sequence/p))))
+(define any-sequence/p
+  (or/p (delay/p (try/p generic-sequence/p))
+        (delay/p (try/p (parametric-sequence/p)))))
 
 (define map-simple/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
-    [a <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
-    [b <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
+    [a <- any-sequence/p]
+    [b <- any-sequence/p]
     (token/p 'CLOSE-PAREN)
     (if (equal? a b)
         (if (eq? 'any/c (second a))
@@ -339,10 +337,8 @@
     [args <- (many/p #:min 1
                      (do (try/p (lookahead/p (many/p #:min 3 contract/p)))
                          contract/p))]
-    [a <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
-    [b <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
+    [a <- any-sequence/p]
+    [b <- any-sequence/p]
     (token/p 'CLOSE-PAREN)
     (if (equal? a b)
         (if (eq? 'any/c (second a))
@@ -353,13 +349,11 @@
 (define map-with-tail/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'function/c)
-    [a <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
+    [a <- any-sequence/p]
     [args <- (many/p #:min 1
                      (do (try/p (lookahead/p (many/p #:min 2 contract/p)))
                          contract/p))]
-    [b <- (or/p (try/p generic-sequence/p)
-                (try/p (parametric-sequence/p)))]
+    [b <- any-sequence/p]
     (token/p 'CLOSE-PAREN)
     (if (equal? a b)
         (if (eq? 'any/c (second a))
