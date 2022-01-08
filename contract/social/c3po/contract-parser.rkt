@@ -384,24 +384,14 @@
     (token/p 'CLOSE-PAREN)
     (pure spec)))
 
-(define parsed-self-map-without-paramspec/p
+(define parsed-self-map/p
   (do (token/p 'OPEN-PAREN)
       (identifier/p 'self-map/c)
     [a <- contract/p]
-    (token/p 'CLOSE-PAREN)
-    (pure (list a null))))
-
-(define parsed-self-map-with-paramspec/p
-  (do (token/p 'OPEN-PAREN)
-      (identifier/p 'self-map/c)
-    [a <- contract/p]
-    [spec <- paramspec/p]
+    [spec <- (or/p (try/p paramspec/p)
+                   (pure null))]
     (token/p 'CLOSE-PAREN)
     (pure (list a spec))))
-
-(define parsed-self-map/p
-  (or/p (try/p parsed-self-map-with-paramspec/p)
-        (try/p parsed-self-map-without-paramspec/p)))
 
 (define generic-sequence-types (list 'list? 'sequence? 'vector?))
 
